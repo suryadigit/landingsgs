@@ -28,50 +28,11 @@ import { useDarkMode } from "../../../hooks/useDarkMode";
 import { useSignup } from "./useSignup";
 import { validateWhatsapp, sendWhatsappCode, verifyWhatsappCode, verifyEmailOtp } from "../../../api/auth";
 
-// Site Key from .env - Enterprise key
-const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || "6LfhjyUsAAAAAPbjPyPC6aDMj5e4MIHEiEVdPpze";
-// Disable reCAPTCHA entirely (set to 'true' in .env to bypass during development/staging)
-const RECAPTCHA_DISABLED = import.meta.env.VITE_DISABLE_RECAPTCHA === 'true';
-
-// Load reCAPTCHA Enterprise script
-const loadRecaptchaEnterprise = (): Promise<void> => {
-    return new Promise((resolve, reject) => {
-        if (window.grecaptcha?.enterprise) {
-            resolve();
-            return;
-        }
-        
-        const script = document.createElement("script");
-        script.src = `https://www.google.com/recaptcha/enterprise.js?render=${RECAPTCHA_SITE_KEY}`;
-        script.async = true;
-        script.defer = true;
-        script.onload = () => {
-            // Wait for grecaptcha to be ready
-            window.grecaptcha.enterprise.ready(() => {
-                resolve();
-            });
-        };
-        script.onerror = () => reject(new Error("Failed to load reCAPTCHA"));
-        document.head.appendChild(script);
-    });
-};
-
-// Declare grecaptcha type
-declare global {
-    interface Window {
-        grecaptcha: {
-            enterprise: {
-                ready: (callback: () => void) => void;
-                execute: (siteKey: string, options: { action: string }) => Promise<string>;
-            };
-        };
-    }
-}
+// reCAPTCHA removed: sign-up flow no longer loads or requires reCAPTCHA
 
 const SignUp: React.FC = () => {
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     const [showActivationModal, setShowActivationModal] = useState(false); // Disabled
-    const [recaptchaReady, setRecaptchaReady] = useState(false);
     
     // OTP states
     const [isSendingOtp, setIsSendingOtp] = useState(false);
@@ -110,23 +71,7 @@ const SignUp: React.FC = () => {
 
     const { COLORS, isDark } = useDarkMode();
 
-    // Load reCAPTCHA Enterprise on mount (skip when disabled)
-    useEffect(() => {
-        if (RECAPTCHA_DISABLED) {
-            console.warn("⚠️ reCAPTCHA is disabled via VITE_DISABLE_RECAPTCHA - bypassing token requirement");
-            setRecaptchaReady(true);
-            return;
-        }
-
-        loadRecaptchaEnterprise()
-            .then(() => {
-                console.log("✅ reCAPTCHA Enterprise loaded (signup)");
-                setRecaptchaReady(true);
-            })
-            .catch((err) => {
-                console.error("❌ Failed to load reCAPTCHA:", err);
-            });
-    }, []);
+    // reCAPTCHA loading removed
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -326,22 +271,15 @@ const SignUp: React.FC = () => {
         return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
 
-    // Handle form submit with reCAPTCHA Enterprise
+    // Submit handler (reCAPTCHA removed)
     const onSubmit = useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        
+
         // ✅ SECURITY: Double-check WhatsApp verification (prevent bypass via inspect element)
         if (!otpVerified || !whatsappVerificationToken) {
             console.error("❌ Security: WhatsApp not verified!");
             setOtpError("Anda harus memverifikasi nomor WhatsApp terlebih dahulu");
             return;
-        }
-
-        if (!RECAPTCHA_DISABLED) {
-            if (!recaptchaReady || !window.grecaptcha?.enterprise) {
-                console.log("reCAPTCHA not ready");
-                return;
-            }
         }
 
         // ✅ SECURITY: Validate form data matches verified phone
@@ -361,27 +299,17 @@ const SignUp: React.FC = () => {
         }
 
         try {
-            let token: string | undefined = undefined;
-
-            if (!RECAPTCHA_DISABLED) {
-                // Execute reCAPTCHA Enterprise and get token
-                token = await window.grecaptcha.enterprise.execute(RECAPTCHA_SITE_KEY, { action: "SIGNUP" });
-                console.log("✅ reCAPTCHA Enterprise token obtained (signup)");
-            } else {
-                console.warn("⚠️ reCAPTCHA disabled — skipping token acquisition");
-            }
-
             // Create a new event to pass to handleSubmit
             const fakeEvent = {
                 preventDefault: () => {},
             } as React.FormEvent<HTMLFormElement>;
 
-            // Pass whatsappVerificationToken to backend (token may be undefined when disabled)
-            await handleSubmit(fakeEvent, token, whatsappVerificationToken);
+            // Pass whatsappVerificationToken to backend; reCAPTCHA removed so we don't include a token
+            await handleSubmit(fakeEvent, undefined, whatsappVerificationToken);
         } catch (error) {
-            console.error("❌ reCAPTCHA error:", error);
+            console.error("❌ Signup error:", error);
         }
-    }, [recaptchaReady, handleSubmit, otpVerified, whatsappVerificationToken, verifiedPhone, formData.phone]);
+    }, [handleSubmit, otpVerified, whatsappVerificationToken, verifiedPhone, formData.phone]);
 
     const blueColor = "#0665fc";
     const inputBgColor = isDark ? COLORS.bg.secondary : "#f9f9f9";
@@ -1240,19 +1168,16 @@ const SignUp: React.FC = () => {
                                     </Text>
                                 </div>
 
-                                {/* reCAPTCHA Enterprise - invisible, no widget */}
-                                <Text size="xs" c="dimmed" ta="center" mb={8}>
-                                    {RECAPTCHA_DISABLED ? "reCAPTCHA dinonaktifkan" : recaptchaReady ? "Dilindungi oleh reCAPTCHA Enterprise" : "Memuat reCAPTCHA..."}
-                                </Text>
+                                {/* reCAPTCHA removed */}
 
                                 {/* Submit Button */}
                                 <Button
                                     type="submit"
                                     fullWidth
                                     size="md"
-                                    disabled={isSignupLoading || !isFormValid || (!recaptchaReady && !RECAPTCHA_DISABLED) || !otpVerified}
+                                    disabled={isSignupLoading || !isFormValid || !otpVerified}
                                     style={{
-                                        background: isSignupLoading || !isFormValid || (!recaptchaReady && !RECAPTCHA_DISABLED) || !otpVerified ? "#cccccc" : blueColor,
+                                        background: isSignupLoading || !isFormValid || !otpVerified ? "#cccccc" : blueColor,
                                         color: "white",
                                         fontWeight: 700,
                                         fontSize: 14,
@@ -1260,7 +1185,7 @@ const SignUp: React.FC = () => {
                                         borderRadius: 30,
                                         border: "none",
                                         transition: "all 0.3s ease",
-                                        boxShadow: isSignupLoading || !isFormValid || (!recaptchaReady && !RECAPTCHA_DISABLED) || !otpVerified
+                                        boxShadow: isSignupLoading || !isFormValid || !otpVerified
                                             ? `0 2px 8px rgba(204, 204, 204, 0.15)`
                                             : `0 2px 8px rgba(6, 101, 252, 0.2)`,
                                         marginTop: "4px",
@@ -1268,18 +1193,18 @@ const SignUp: React.FC = () => {
                                         alignItems: "center",
                                         justifyContent: "center",
                                         gap: "10px",
-                                        cursor: isSignupLoading || !isFormValid || (!recaptchaReady && !RECAPTCHA_DISABLED) || !otpVerified ? "not-allowed" : "pointer",
-                                        opacity: isSignupLoading || !isFormValid || (!recaptchaReady && !RECAPTCHA_DISABLED) || !otpVerified ? 0.6 : 1,
+                                        cursor: isSignupLoading || !isFormValid || !otpVerified ? "not-allowed" : "pointer",
+                                        opacity: isSignupLoading || !isFormValid || !otpVerified ? 0.6 : 1,
                                     }}
                                     onMouseEnter={(e) => {
-                                        if (!isSignupLoading && isFormValid && (recaptchaReady || RECAPTCHA_DISABLED) && otpVerified) {
+                                        if (!isSignupLoading && isFormValid && otpVerified) {
                                             e.currentTarget.style.background = "#0055d4";
                                             e.currentTarget.style.boxShadow = `0 6px 16px rgba(6, 101, 252, 0.3)`;
                                             e.currentTarget.style.transform = "translateY(-2px)";
                                         }
                                     }}
                                     onMouseLeave={(e) => {
-                                        if (!isSignupLoading && isFormValid && (recaptchaReady || RECAPTCHA_DISABLED) && otpVerified) {
+                                        if (!isSignupLoading && isFormValid && otpVerified) {
                                             e.currentTarget.style.background = blueColor;
                                             e.currentTarget.style.boxShadow = `0 2px 8px rgba(6, 101, 252, 0.2)`;
                                             e.currentTarget.style.transform = "translateY(0)";

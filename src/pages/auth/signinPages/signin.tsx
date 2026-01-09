@@ -23,48 +23,10 @@ import { useDarkMode } from "../../../hooks/useDarkMode";
 import { useSignin } from "./useSignin";
 import OtpVerificationModal from "./OtpVerificationModal";
 
-// Site Key from .env - Enterprise key
-const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || "6LfhjyUsAAAAAPbjPyPC6aDMj5e4MIHEiEVdPpze";
-// Disable reCAPTCHA entirely (set to 'true' in .env to bypass during development/staging)
-const RECAPTCHA_DISABLED = import.meta.env.VITE_DISABLE_RECAPTCHA === 'true';
-
-// Load reCAPTCHA Enterprise script
-const loadRecaptchaEnterprise = (): Promise<void> => {
-    return new Promise((resolve, reject) => {
-        if (window.grecaptcha?.enterprise) {
-            resolve();
-            return;
-        }
-        
-        const script = document.createElement("script");
-        script.src = `https://www.google.com/recaptcha/enterprise.js?render=${RECAPTCHA_SITE_KEY}`;
-        script.async = true;
-        script.defer = true;
-        script.onload = () => {
-            // Wait for grecaptcha to be ready
-            window.grecaptcha.enterprise.ready(() => {
-                resolve();
-            });
-        };
-        script.onerror = () => reject(new Error("Failed to load reCAPTCHA"));
-        document.head.appendChild(script);
-    });
-};
-
-// Declare grecaptcha type
-declare global {
-    interface Window {
-        grecaptcha: {
-            enterprise: {
-                ready: (callback: () => void) => void;
-                execute: (siteKey: string, options: { action: string }) => Promise<string>;
-            };
-        };
-    }
-}
+// reCAPTCHA removed: sign-in flow no longer loads or requires reCAPTCHA
 
 const SignIn: React.FC = () => {
-    const [recaptchaReady, setRecaptchaReady] = useState(false);
+    // reCAPTCHA removed
 
     const {
         formData,
@@ -85,23 +47,7 @@ const SignIn: React.FC = () => {
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     const { COLORS, isDark } = useDarkMode();
 
-    // Load reCAPTCHA Enterprise on mount (skip when disabled)
-    useEffect(() => {
-        if (RECAPTCHA_DISABLED) {
-            console.warn("⚠️ reCAPTCHA is disabled via VITE_DISABLE_RECAPTCHA - bypassing token requirement");
-            setRecaptchaReady(true);
-            return;
-        }
-
-        loadRecaptchaEnterprise()
-            .then(() => {
-                console.log("✅ reCAPTCHA Enterprise loaded");
-                setRecaptchaReady(true);
-            })
-            .catch((err) => {
-                console.error("❌ Failed to load reCAPTCHA:", err);
-            });
-    }, []);
+    // reCAPTCHA loading removed
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -113,38 +59,11 @@ const SignIn: React.FC = () => {
     const inputBgColor = isDark ? COLORS.bg.secondary : "#f9f9f9";
     const inputBorder = COLORS.border;
 
-    // Handle form submit with reCAPTCHA Enterprise
+    // Simple submit handler (reCAPTCHA removed)
     const onSubmit = useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        
-            if (!RECAPTCHA_DISABLED) {
-                if (!recaptchaReady || !window.grecaptcha?.enterprise) {
-                    console.log("reCAPTCHA not ready");
-                    return;
-                }
-            }
-
-        try {
-            let token: string | undefined = undefined;
-
-            if (!RECAPTCHA_DISABLED) {
-                // Execute reCAPTCHA Enterprise and get token
-                token = await window.grecaptcha.enterprise.execute(RECAPTCHA_SITE_KEY, { action: "LOGIN" });
-                console.log("✅ reCAPTCHA Enterprise token obtained");
-            } else {
-                console.warn("⚠️ reCAPTCHA disabled — skipping token acquisition");
-            }
-
-            // Create a new event to pass to handleSubmit
-            const fakeEvent = {
-                preventDefault: () => {},
-            } as React.FormEvent<HTMLFormElement>;
-
-            await handleSubmit(fakeEvent, token);
-        } catch (error) {
-            console.error("❌ reCAPTCHA error:", error);
-        }
-    }, [recaptchaReady, handleSubmit]);
+        await handleSubmit(e);
+    }, [handleSubmit]);
 
     return (
         <Flex
@@ -388,19 +307,16 @@ const SignIn: React.FC = () => {
                                 </a>
                             </Flex>
 
-                            {/* reCAPTCHA v3/Enterprise - invisible, no widget */}
-                            <Text size="xs" c="dimmed" ta="center" mb={8}>
-                                {RECAPTCHA_DISABLED ? "reCAPTCHA dinonaktifkan" : recaptchaReady ? "Dilindungi oleh reCAPTCHA Enterprise" : "Memuat reCAPTCHA..."}
-                            </Text>
+                            {/* reCAPTCHA removed */}
 
                             {/* Sign In Button */}
                             <Button
                                 type="submit"
                                 fullWidth
                                 size="md"
-                                disabled={isLoading || !isFormValid || (!recaptchaReady && !RECAPTCHA_DISABLED)}
+                                disabled={isLoading || !isFormValid}
                                 style={{
-                                    background: isLoading || !isFormValid || (!recaptchaReady && !RECAPTCHA_DISABLED) ? "#cccccc" : blueColor,
+                                    background: isLoading || !isFormValid ? "#cccccc" : blueColor,
                                     color: "white",
                                     fontWeight: 700,
                                     fontSize: 14,
@@ -408,7 +324,7 @@ const SignIn: React.FC = () => {
                                     borderRadius: 30,
                                     border: "none",
                                     transition: "all 0.3s ease",
-                                    boxShadow: isLoading || !isFormValid || (!recaptchaReady && !RECAPTCHA_DISABLED)
+                                    boxShadow: isLoading || !isFormValid
                                         ? `0 2px 8px rgba(204, 204, 204, 0.15)`
                                         : `0 2px 8px rgba(6, 101, 252, 0.2)`,
                                     marginTop: "4px",
@@ -416,18 +332,18 @@ const SignIn: React.FC = () => {
                                     alignItems: "center",
                                     justifyContent: "center",
                                     gap: "10px",
-                                    cursor: isLoading || !isFormValid || (!recaptchaReady && !RECAPTCHA_DISABLED) ? "not-allowed" : "pointer",
-                                    opacity: isLoading || !isFormValid || (!recaptchaReady && !RECAPTCHA_DISABLED) ? 0.6 : 1,
+                                    cursor: isLoading || !isFormValid ? "not-allowed" : "pointer",
+                                    opacity: isLoading || !isFormValid ? 0.6 : 1,
                                 }}
                                 onMouseEnter={(e) => {
-                                    if (!isLoading && isFormValid && (recaptchaReady || RECAPTCHA_DISABLED)) {
+                                    if (!isLoading && isFormValid) {
                                         e.currentTarget.style.background = "#0055d4";
                                         e.currentTarget.style.boxShadow = `0 6px 16px rgba(6, 101, 252, 0.3)`;
                                         e.currentTarget.style.transform = "translateY(-2px)";
                                     }
                                 }}
                                 onMouseLeave={(e) => {
-                                    if (!isLoading && isFormValid && (recaptchaReady || RECAPTCHA_DISABLED)) {
+                                    if (!isLoading && isFormValid) {
                                         e.currentTarget.style.background = blueColor;
                                         e.currentTarget.style.boxShadow = `0 2px 8px rgba(6, 101, 252, 0.2)`;
                                         e.currentTarget.style.transform = "translateY(0)";

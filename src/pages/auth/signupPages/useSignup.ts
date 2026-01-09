@@ -16,7 +16,6 @@ interface SignupSuccessData {
 }
 
 export const useSignup = () => {
-    const RECAPTCHA_DISABLED = import.meta.env.VITE_DISABLE_RECAPTCHA === 'true';
     const [formData, setFormData] = useState<FormState>({
         name: "",
         email: "",
@@ -76,10 +75,6 @@ export const useSignup = () => {
             return;
         }
 
-        if (!recaptchaToken && !RECAPTCHA_DISABLED) {
-            setSignupError("reCAPTCHA token diperlukan. Silakan coba lagi.");
-            return;
-        }
 
         // ✅ SECURITY: Require WhatsApp verification token
         if (!whatsappVerificationToken) {
