@@ -1242,7 +1242,7 @@ const SignUp: React.FC = () => {
 
                                 {/* reCAPTCHA Enterprise - invisible, no widget */}
                                 <Text size="xs" c="dimmed" ta="center" mb={8}>
-                                    {recaptchaReady ? "Dilindungi oleh reCAPTCHA Enterprise" : "Memuat reCAPTCHA..."}
+                                    {RECAPTCHA_DISABLED ? "reCAPTCHA dinonaktifkan" : recaptchaReady ? "Dilindungi oleh reCAPTCHA Enterprise" : "Memuat reCAPTCHA..."}
                                 </Text>
 
                                 {/* Submit Button */}
@@ -1250,9 +1250,9 @@ const SignUp: React.FC = () => {
                                     type="submit"
                                     fullWidth
                                     size="md"
-                                    disabled={isSignupLoading || !isFormValid || !recaptchaReady || !otpVerified}
+                                    disabled={isSignupLoading || !isFormValid || (!recaptchaReady && !RECAPTCHA_DISABLED) || !otpVerified}
                                     style={{
-                                        background: isSignupLoading || !isFormValid || !recaptchaReady || !otpVerified ? "#cccccc" : blueColor,
+                                        background: isSignupLoading || !isFormValid || (!recaptchaReady && !RECAPTCHA_DISABLED) || !otpVerified ? "#cccccc" : blueColor,
                                         color: "white",
                                         fontWeight: 700,
                                         fontSize: 14,
@@ -1260,7 +1260,7 @@ const SignUp: React.FC = () => {
                                         borderRadius: 30,
                                         border: "none",
                                         transition: "all 0.3s ease",
-                                        boxShadow: isSignupLoading || !isFormValid || !recaptchaReady || !otpVerified
+                                        boxShadow: isSignupLoading || !isFormValid || (!recaptchaReady && !RECAPTCHA_DISABLED) || !otpVerified
                                             ? `0 2px 8px rgba(204, 204, 204, 0.15)`
                                             : `0 2px 8px rgba(6, 101, 252, 0.2)`,
                                         marginTop: "4px",
@@ -1268,18 +1268,18 @@ const SignUp: React.FC = () => {
                                         alignItems: "center",
                                         justifyContent: "center",
                                         gap: "10px",
-                                    cursor: isSignupLoading || !isFormValid || !recaptchaReady || !otpVerified ? "not-allowed" : "pointer",
-                                    opacity: isSignupLoading || !isFormValid || !recaptchaReady || !otpVerified ? 0.6 : 1,
+                                        cursor: isSignupLoading || !isFormValid || (!recaptchaReady && !RECAPTCHA_DISABLED) || !otpVerified ? "not-allowed" : "pointer",
+                                        opacity: isSignupLoading || !isFormValid || (!recaptchaReady && !RECAPTCHA_DISABLED) || !otpVerified ? 0.6 : 1,
                                     }}
                                     onMouseEnter={(e) => {
-                                        if (!isSignupLoading && isFormValid && recaptchaReady && otpVerified) {
+                                        if (!isSignupLoading && isFormValid && (recaptchaReady || RECAPTCHA_DISABLED) && otpVerified) {
                                             e.currentTarget.style.background = "#0055d4";
                                             e.currentTarget.style.boxShadow = `0 6px 16px rgba(6, 101, 252, 0.3)`;
                                             e.currentTarget.style.transform = "translateY(-2px)";
                                         }
                                     }}
                                     onMouseLeave={(e) => {
-                                        if (!isSignupLoading && isFormValid && recaptchaReady && otpVerified) {
+                                        if (!isSignupLoading && isFormValid && (recaptchaReady || RECAPTCHA_DISABLED) && otpVerified) {
                                             e.currentTarget.style.background = blueColor;
                                             e.currentTarget.style.boxShadow = `0 2px 8px rgba(6, 101, 252, 0.2)`;
                                             e.currentTarget.style.transform = "translateY(0)";

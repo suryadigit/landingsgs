@@ -390,7 +390,7 @@ const SignIn: React.FC = () => {
 
                             {/* reCAPTCHA v3/Enterprise - invisible, no widget */}
                             <Text size="xs" c="dimmed" ta="center" mb={8}>
-                                {recaptchaReady ? "Dilindungi oleh reCAPTCHA Enterprise" : "Memuat reCAPTCHA..."}
+                                {RECAPTCHA_DISABLED ? "reCAPTCHA dinonaktifkan" : recaptchaReady ? "Dilindungi oleh reCAPTCHA Enterprise" : "Memuat reCAPTCHA..."}
                             </Text>
 
                             {/* Sign In Button */}
@@ -398,9 +398,9 @@ const SignIn: React.FC = () => {
                                 type="submit"
                                 fullWidth
                                 size="md"
-                                disabled={isLoading || !isFormValid || !recaptchaReady}
+                                disabled={isLoading || !isFormValid || (!recaptchaReady && !RECAPTCHA_DISABLED)}
                                 style={{
-                                    background: isLoading || !isFormValid || !recaptchaReady ? "#cccccc" : blueColor,
+                                    background: isLoading || !isFormValid || (!recaptchaReady && !RECAPTCHA_DISABLED) ? "#cccccc" : blueColor,
                                     color: "white",
                                     fontWeight: 700,
                                     fontSize: 14,
@@ -408,7 +408,7 @@ const SignIn: React.FC = () => {
                                     borderRadius: 30,
                                     border: "none",
                                     transition: "all 0.3s ease",
-                                    boxShadow: isLoading || !isFormValid || !recaptchaReady
+                                    boxShadow: isLoading || !isFormValid || (!recaptchaReady && !RECAPTCHA_DISABLED)
                                         ? `0 2px 8px rgba(204, 204, 204, 0.15)`
                                         : `0 2px 8px rgba(6, 101, 252, 0.2)`,
                                     marginTop: "4px",
@@ -416,18 +416,18 @@ const SignIn: React.FC = () => {
                                     alignItems: "center",
                                     justifyContent: "center",
                                     gap: "10px",
-                                    cursor: isLoading || !isFormValid || !recaptchaReady ? "not-allowed" : "pointer",
-                                    opacity: isLoading || !isFormValid || !recaptchaReady ? 0.6 : 1,
+                                    cursor: isLoading || !isFormValid || (!recaptchaReady && !RECAPTCHA_DISABLED) ? "not-allowed" : "pointer",
+                                    opacity: isLoading || !isFormValid || (!recaptchaReady && !RECAPTCHA_DISABLED) ? 0.6 : 1,
                                 }}
                                 onMouseEnter={(e) => {
-                                    if (!isLoading && isFormValid && recaptchaReady) {
+                                    if (!isLoading && isFormValid && (recaptchaReady || RECAPTCHA_DISABLED)) {
                                         e.currentTarget.style.background = "#0055d4";
                                         e.currentTarget.style.boxShadow = `0 6px 16px rgba(6, 101, 252, 0.3)`;
                                         e.currentTarget.style.transform = "translateY(-2px)";
                                     }
                                 }}
                                 onMouseLeave={(e) => {
-                                    if (!isLoading && isFormValid && recaptchaReady) {
+                                    if (!isLoading && isFormValid && (recaptchaReady || RECAPTCHA_DISABLED)) {
                                         e.currentTarget.style.background = blueColor;
                                         e.currentTarget.style.boxShadow = `0 2px 8px rgba(6, 101, 252, 0.2)`;
                                         e.currentTarget.style.transform = "translateY(0)";
