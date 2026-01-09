@@ -9,9 +9,9 @@ export default defineConfig({
     port: 3002,
     proxy: {
       '/api': {
-        target: 'http://localhost:4000',
+        target: 'https://api.stag.sgs.mudahbelajardigital.com',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '/api'),
+        rewrite: (path) => path,
       }
     }
   }
