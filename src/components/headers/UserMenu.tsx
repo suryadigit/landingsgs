@@ -5,9 +5,9 @@ import {
   IconUser,
   IconChevronDown,
 } from '@tabler/icons-react';
-import { COLORS } from '../../types/colors';
+import { COLORS } from '../../shared/types';
 import { LevelBadge } from './LevelBadge';
-import type { UserRole } from '../../api/auth';
+import type { UserRole } from '../../features/auth';
 
 interface UserMenuProps {
   userName: string;
@@ -94,29 +94,29 @@ export function UserMenu({
             </Box>
             <IconChevronDown
               size={14}
-              color={COLORS.text.tertiary}
+              color={textColor}
               style={{ transition: 'transform 0.2s', flexShrink: 0 }}
             />
           </Group>
         )}
       </Menu.Target>
 
-      <Menu.Dropdown>
+        <Menu.Dropdown>
         <Menu.Label>Profil</Menu.Label>
-        <Menu.Item leftSection={<IconUser size={14} />}>Lihat Profil</Menu.Item>
-        <Menu.Item leftSection={<IconSettings size={14} />}>
+        <Menu.Item leftSection={<IconUser size={14} color={textColor} />}>Lihat Profil</Menu.Item>
+        <Menu.Item leftSection={<IconSettings size={14} color={textColor} />}>
           Pengaturan Akun
         </Menu.Item>
 
         <Divider my="sm" />
 
         <Menu.Label>Pengaturan</Menu.Label>
-        <Menu.Item leftSection={<IconSettings size={14} />}>Preferensi</Menu.Item>
+        <Menu.Item leftSection={<IconSettings size={14} color={textColor} />}>Preferensi</Menu.Item>
 
         <Divider my="sm" />
 
         <Menu.Item
-          leftSection={<IconLogout size={14} />}
+          leftSection={<IconLogout size={14} color={textColor} />}
           color="red"
           onClick={onLogout}
         >

@@ -187,7 +187,6 @@ export function NetworkStatus({  }: NetworkStatusProps) {
               stroke={2}
               style={{
                 filter: `drop-shadow(0 0 8px ${info.color})`,
-                animation: `signal-bars 2s infinite`,
               }}
             />
           </Box>
@@ -203,7 +202,6 @@ export function NetworkStatus({  }: NetworkStatusProps) {
               borderRadius: '50%',
               backgroundColor: info.color,
               boxShadow: `0 0 6px ${info.color}`,
-              animation: `signal-bars 1s infinite`,
             }}
           />
         </ActionIcon>

@@ -10,7 +10,7 @@ import {
   ScrollArea,
 } from '@mantine/core';
 import { IconChevronDown, IconSearch, IconX } from '@tabler/icons-react';
-import { COLORS } from '../../../types/colors';
+import { COLORS } from '../../../shared/types';
 import type { SearchItem } from '../search/useHeaderSearch';
 import { POPULAR_SEARCHES, QUICK_NAV_ITEMS } from '../search/useHeaderSearch';
 
@@ -78,7 +78,6 @@ export function SearchModal({
       }}
     >
       <Stack gap={24}>
-        {/* Header dengan Close Button */}
         <Group justify="space-between" align="flex-start">
           <Box>
             <Text fw={700} size="xl" style={{ color: textColor }}>
@@ -110,7 +109,6 @@ export function SearchModal({
           </Box>
         </Group>
 
-        {/* Search Input */}
         <TextInput
           placeholder="Ketik untuk mencari..."
           leftSection={<IconSearch size={22} />}
@@ -151,7 +149,6 @@ export function SearchModal({
           }}
         />
 
-        {/* Results or Suggestions */}
         <ScrollArea style={{ maxHeight: 450 }}>
           {searchValue.length > 0 ? (
             <SearchResults
@@ -182,7 +179,6 @@ export function SearchModal({
   );
 }
 
-// Sub-component: Search Results
 interface SearchResultsProps {
   filteredResults: SearchItem[];
   onNavigate: (path: string) => void;
@@ -242,7 +238,6 @@ function SearchResults({
   );
 }
 
-// Sub-component: Search Result Item
 interface SearchResultItemProps {
   result: SearchItem;
   onNavigate: (path: string) => void;
@@ -305,7 +300,6 @@ function SearchResultItem({
   );
 }
 
-// Sub-component: Search Suggestions
 interface SearchSuggestionsProps {
   searchItems: SearchItem[];
   onSearchChange: (value: string) => void;
@@ -332,7 +326,6 @@ function SearchSuggestions({
 }: SearchSuggestionsProps) {
   return (
     <Stack gap={20} pr={16}>
-      {/* Popular Searches */}
       <Box>
         <Group justify="space-between" mb={12}>
           <Text size="xs" fw={700} c="dimmed" tt="uppercase">
@@ -374,7 +367,6 @@ function SearchSuggestions({
         </Group>
       </Box>
 
-      {/* Quick Navigation */}
       <Box>
         <Text size="xs" fw={700} c="dimmed" tt="uppercase" mb={12}>
           🚀 Navigasi Cepat

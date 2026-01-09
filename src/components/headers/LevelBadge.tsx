@@ -3,10 +3,8 @@ import {
   IconCrown, 
   IconShieldCheck, 
 } from '@tabler/icons-react';
-import type { UserRole } from '../../api/auth';
+import type { UserRole } from '../../features/auth';
 
-// Level configuration with colors - Crown Hexagon Style
-// Each level has both dark mode and light mode colors for better visibility
 const LEVEL_CONFIG: Record<number, {
   name: string;
   title: string;
@@ -18,7 +16,6 @@ const LEVEL_CONFIG: Record<number, {
     sparkle: string;
     glow: string;
   };
-  // Enhanced colors for light mode - more saturated and vibrant
   lightModeColors: {
     hexLight: string;
     hexDark: string;
@@ -230,7 +227,6 @@ const LEVEL_CONFIG: Record<number, {
   },
 };
 
-// Role configuration for Admin/SuperAdmin
 const ROLE_CONFIG: Record<string, {
   name: string;
   IconComponent: typeof IconCrown;
@@ -293,7 +289,6 @@ const ROLE_CONFIG: Record<string, {
   },
 };
 
-// Crown Hexagon Badge SVG Component - Level Number Prominent
 const CrownHexagonBadge = ({ 
   level, 
   colors, 
@@ -305,7 +300,7 @@ const CrownHexagonBadge = ({
   colors: typeof LEVEL_CONFIG[1]['colors']; 
   size: number;
   showLevel?: boolean;
-  labelText?: string; // For Admin ("A") or SuperAdmin ("SA")
+  labelText?: string;
 }) => {
   const id = `badge-${level}-${Math.random().toString(36).substr(2, 9)}`;
   
@@ -319,19 +314,16 @@ const CrownHexagonBadge = ({
       style={{ filter: `drop-shadow(0 4px 8px ${colors.glow})` }}
     >
       <defs>
-        {/* Hexagon gradient */}
         <linearGradient id={`hexGrad-${id}`} x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor={colors.hexLight} />
           <stop offset="100%" stopColor={colors.hexDark} />
         </linearGradient>
         
-        {/* Crown gradient */}
         <linearGradient id={`crownGrad-${id}`} x1="0%" y1="0%" x2="0%" y2="100%">
           <stop offset="0%" stopColor={colors.crownLight} />
           <stop offset="100%" stopColor={colors.crownDark} />
         </linearGradient>
         
-        {/* Glow filter */}
         <filter id={`glow-${id}`} x="-50%" y="-50%" width="200%" height="200%">
           <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
           <feMerge>
@@ -341,27 +333,16 @@ const CrownHexagonBadge = ({
         </filter>
       </defs>
       
-      {/* Shadow under hexagon */}
-      <ellipse cx="50" cy="92" rx="25" ry="5" fill="rgba(0,0,0,0.15)">
-        <animate attributeName="rx" values="25;27;25" dur="2s" repeatCount="indefinite"/>
-      </ellipse>
+      <ellipse cx="50" cy="92" rx="25" ry="5" fill="rgba(0,0,0,0.15)"/>
       
-      {/* Main Hexagon - rounded style */}
       <path 
         d="M50 8 L85 28 L85 68 L50 88 L15 68 L15 28 Z" 
         fill={`url(#hexGrad-${id})`}
         stroke={colors.hexDark}
         strokeWidth="2"
         strokeLinejoin="round"
-      >
-        <animate attributeName="d" 
-          values="M50 8 L85 28 L85 68 L50 88 L15 68 L15 28 Z;M50 6 L87 27 L87 69 L50 90 L13 69 L13 27 Z;M50 8 L85 28 L85 68 L50 88 L15 68 L15 28 Z" 
-          dur="3s" 
-          repeatCount="indefinite"
-        />
-      </path>
+      />
       
-      {/* Inner glow effect */}
       <path 
         d="M50 15 L78 32 L78 64 L50 81 L22 64 L22 32 Z" 
         fill="none"
@@ -370,9 +351,7 @@ const CrownHexagonBadge = ({
         strokeOpacity="0.4"
       />
       
-      {/* Small Crown at top */}
       <g filter={`url(#glow-${id})`} transform="translate(0, -8)">
-        {/* Crown base - smaller */}
         <path 
           d="M35 35 L37 25 L42 30 L50 20 L58 30 L63 25 L65 35 Z" 
           fill={`url(#crownGrad-${id})`}
@@ -380,30 +359,18 @@ const CrownHexagonBadge = ({
           strokeWidth="1"
           strokeLinejoin="round"
         />
-        {/* Crown band */}
         <rect x="35" y="35" width="30" height="5" rx="1" fill={colors.crownDark} />
-        
-        {/* Crown jewels */}
-        <circle cx="50" cy="23" r="2" fill={colors.sparkle}>
-          <animate attributeName="opacity" values="1;0.6;1" dur="1.5s" repeatCount="indefinite"/>
-        </circle>
-        <circle cx="42" cy="28" r="1.5" fill={colors.sparkle}>
-          <animate attributeName="opacity" values="0.8;1;0.8" dur="1.2s" repeatCount="indefinite"/>
-        </circle>
-        <circle cx="58" cy="28" r="1.5" fill={colors.sparkle}>
-          <animate attributeName="opacity" values="1;0.8;1" dur="1.3s" repeatCount="indefinite"/>
-        </circle>
+        <circle cx="50" cy="23" r="2" fill={colors.sparkle}/>
+        <circle cx="42" cy="28" r="1.5" fill={colors.sparkle}/>
+        <circle cx="58" cy="28" r="1.5" fill={colors.sparkle}/>
       </g>
       
-      {/* Level Number or Label Text - PROMINENT in center */}
       {(showLevel || labelText) && (
         <g>
-          {/* Background circle for number/text */}
           <circle cx="50" cy="55" r="22" fill={colors.hexDark} fillOpacity="0.3"/>
           <circle cx="50" cy="55" r="20" fill="none" stroke={colors.sparkle} strokeWidth="2" strokeOpacity="0.5"/>
           
           {labelText ? (
-            /* Label Text for Admin/SuperAdmin */
             <text 
               x="50" 
               y="62" 
@@ -419,7 +386,6 @@ const CrownHexagonBadge = ({
               {labelText}
             </text>
           ) : (
-            /* Level Number for Members */
             <>
               <text 
                 x="50" 
@@ -436,7 +402,6 @@ const CrownHexagonBadge = ({
                 {level}
               </text>
               
-              {/* "LV" label above number */}
               <text 
                 x="50" 
                 y="42" 
@@ -452,78 +417,24 @@ const CrownHexagonBadge = ({
           )}
         </g>
       )}
-      
-      {/* Sparkles - more sparkles for higher levels with wiggle animation */}
       <g>
-        {/* Top right sparkle - wiggle */}
-        <path d="M78 18 L80 22 L84 24 L80 26 L78 30 L76 26 L72 24 L76 22 Z" fill={colors.sparkle}>
-          <animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite"/>
-          <animateTransform attributeName="transform" type="rotate" values="-10 78 24;15 78 24;-10 78 24" dur="1.2s" repeatCount="indefinite"/>
-          <animateTransform attributeName="transform" type="scale" values="1;1.3;1" dur="1.5s" repeatCount="indefinite" additive="sum"/>
-        </path>
-        
-        {/* Left sparkle - wiggle */}
-        <path d="M12 45 L14 48 L17 49 L14 50 L12 53 L10 50 L7 49 L10 48 Z" fill={colors.sparkle}>
-          <animate attributeName="opacity" values="0.8;0.3;0.8" dur="1.8s" repeatCount="indefinite"/>
-          <animateTransform attributeName="transform" type="rotate" values="15 12 49;-20 12 49;15 12 49" dur="1.4s" repeatCount="indefinite"/>
-          <animateTransform attributeName="transform" type="scale" values="1;1.2;0.9;1" dur="1.6s" repeatCount="indefinite" additive="sum"/>
-        </path>
-        
-        {/* Bottom left sparkle - wiggle */}
-        <path d="M20 78 L21 80 L23 81 L21 82 L20 84 L19 82 L17 81 L19 80 Z" fill={colors.sparkle}>
-          <animate attributeName="opacity" values="0.6;1;0.6" dur="1.4s" repeatCount="indefinite"/>
-          <animateTransform attributeName="transform" type="rotate" values="-15 20 81;20 20 81;-15 20 81" dur="1.3s" repeatCount="indefinite"/>
-          <animateTransform attributeName="transform" type="scale" values="0.9;1.2;0.9" dur="1.1s" repeatCount="indefinite" additive="sum"/>
-        </path>
-        
-        {/* Top left sparkle - new wiggle */}
-        <path d="M22 22 L23 24 L25 25 L23 26 L22 28 L21 26 L19 25 L21 24 Z" fill={colors.sparkle}>
-          <animate attributeName="opacity" values="0.5;1;0.5" dur="1.6s" repeatCount="indefinite"/>
-          <animateTransform attributeName="transform" type="rotate" values="20 22 25;-15 22 25;20 22 25" dur="1.5s" repeatCount="indefinite"/>
-          <animateTransform attributeName="transform" type="scale" values="1;1.4;1" dur="1.8s" repeatCount="indefinite" additive="sum"/>
-        </path>
-        
-        {/* Bottom right sparkle - new wiggle */}
-        <path d="M80 75 L81 77 L83 78 L81 79 L80 81 L79 79 L77 78 L79 77 Z" fill={colors.sparkle}>
-          <animate attributeName="opacity" values="0.7;0.4;1;0.7" dur="1.3s" repeatCount="indefinite"/>
-          <animateTransform attributeName="transform" type="rotate" values="-20 80 78;25 80 78;-20 80 78" dur="1.1s" repeatCount="indefinite"/>
-          <animateTransform attributeName="transform" type="scale" values="1.1;0.8;1.3;1.1" dur="1.4s" repeatCount="indefinite" additive="sum"/>
-        </path>
-        
-        {/* Extra sparkles for level 5+ */}
+        <path d="M78 18 L80 22 L84 24 L80 26 L78 30 L76 26 L72 24 L76 22 Z" fill={colors.sparkle} opacity="0.8"/>
+        <path d="M12 45 L14 48 L17 49 L14 50 L12 53 L10 50 L7 49 L10 48 Z" fill={colors.sparkle} opacity="0.7"/>
+        <path d="M20 78 L21 80 L23 81 L21 82 L20 84 L19 82 L17 81 L19 80 Z" fill={colors.sparkle} opacity="0.6"/>
+        <path d="M22 22 L23 24 L25 25 L23 26 L22 28 L21 26 L19 25 L21 24 Z" fill={colors.sparkle} opacity="0.7"/>
+        <path d="M80 75 L81 77 L83 78 L81 79 L80 81 L79 79 L77 78 L79 77 Z" fill={colors.sparkle} opacity="0.8"/>
         {level >= 5 && (
           <>
-            <path d="M88 50 L89 52 L91 53 L89 54 L88 56 L87 54 L85 53 L87 52 Z" fill={colors.sparkle}>
-              <animate attributeName="opacity" values="1;0.4;1" dur="1.1s" repeatCount="indefinite"/>
-              <animateTransform attributeName="transform" type="rotate" values="10 88 53;-25 88 53;10 88 53" dur="0.9s" repeatCount="indefinite"/>
-              <animateTransform attributeName="transform" type="scale" values="1;1.4;1" dur="1.0s" repeatCount="indefinite" additive="sum"/>
-            </path>
-            <path d="M55 5 L56 8 L59 9 L56 10 L55 13 L54 10 L51 9 L54 8 Z" fill={colors.sparkle}>
-              <animate attributeName="opacity" values="0.5;1;0.5" dur="1.2s" repeatCount="indefinite"/>
-              <animateTransform attributeName="transform" type="rotate" values="-15 55 9;20 55 9;-15 55 9" dur="1.3s" repeatCount="indefinite"/>
-              <animateTransform attributeName="transform" type="scale" values="0.9;1.3;0.9" dur="1.1s" repeatCount="indefinite" additive="sum"/>
-            </path>
+            <path d="M88 50 L89 52 L91 53 L89 54 L88 56 L87 54 L85 53 L87 52 Z" fill={colors.sparkle} opacity="0.75"/>
+            <path d="M55 5 L56 8 L59 9 L56 10 L55 13 L54 10 L51 9 L54 8 Z" fill={colors.sparkle} opacity="0.65"/>
           </>
         )}
         
-        {/* Extra sparkles for level 8+ */}
         {level >= 8 && (
           <>
-            <path d="M45 2 L46 4 L48 5 L46 6 L45 8 L44 6 L42 5 L44 4 Z" fill={colors.sparkle}>
-              <animate attributeName="opacity" values="0.7;1;0.7" dur="0.9s" repeatCount="indefinite"/>
-              <animateTransform attributeName="transform" type="rotate" values="25 45 5;-20 45 5;25 45 5" dur="0.8s" repeatCount="indefinite"/>
-              <animateTransform attributeName="transform" type="scale" values="1;1.5;1" dur="0.9s" repeatCount="indefinite" additive="sum"/>
-            </path>
-            <path d="M92 35 L93 37 L95 38 L93 39 L92 41 L91 39 L89 38 L91 37 Z" fill={colors.sparkle}>
-              <animate attributeName="opacity" values="1;0.5;1" dur="1.3s" repeatCount="indefinite"/>
-              <animateTransform attributeName="transform" type="rotate" values="-20 92 38;30 92 38;-20 92 38" dur="1.0s" repeatCount="indefinite"/>
-              <animateTransform attributeName="transform" type="scale" values="1.2;0.8;1.2" dur="1.2s" repeatCount="indefinite" additive="sum"/>
-            </path>
-            <path d="M8 65 L9 67 L11 68 L9 69 L8 71 L7 69 L5 68 L7 67 Z" fill={colors.sparkle}>
-              <animate attributeName="opacity" values="0.6;1;0.6" dur="1.0s" repeatCount="indefinite"/>
-              <animateTransform attributeName="transform" type="rotate" values="15 8 68;-25 8 68;15 8 68" dur="1.1s" repeatCount="indefinite"/>
-              <animateTransform attributeName="transform" type="scale" values="0.9;1.4;0.9" dur="0.95s" repeatCount="indefinite" additive="sum"/>
-            </path>
+            <path d="M45 2 L46 4 L48 5 L46 6 L45 8 L44 6 L42 5 L44 4 Z" fill={colors.sparkle} opacity="0.7"/>
+            <path d="M92 35 L93 37 L95 38 L93 39 L92 41 L91 39 L89 38 L91 37 Z" fill={colors.sparkle} opacity="0.8"/>
+            <path d="M8 65 L9 67 L11 68 L9 69 L8 71 L7 69 L5 68 L7 67 Z" fill={colors.sparkle} opacity="0.65"/>
           </>
         )}
       </g>
@@ -541,23 +452,15 @@ interface LevelBadgeProps {
 export function LevelBadge({ level = 1, role = 'MEMBER', showLabel = false, size = 'md' }: LevelBadgeProps) {
   const { colorScheme } = useMantineColorScheme();
   const isDark = colorScheme === 'dark';
-  
   const levelConfig = LEVEL_CONFIG[level] || LEVEL_CONFIG[1];
   const roleConfig = ROLE_CONFIG[role as keyof typeof ROLE_CONFIG];
-  
-  // Select colors based on theme
   const levelColors = isDark ? levelConfig.colors : levelConfig.lightModeColors;
-  
-  // Size configurations
   const sizeConfig = {
     sm: { badge: 36, icon: 16 },
     md: { badge: 48, icon: 20 },
     lg: { badge: 60, icon: 24 },
   };
-  
   const { badge: badgeSize } = sizeConfig[size];
-
-  // For ADMIN and SUPERADMIN - use same Crown Hexagon badge with SA/A label
   if (role === 'ADMIN' || role === 'SUPERADMIN') {
     const config = roleConfig;
     const roleColors = isDark ? config.colors : config.lightModeColors;
@@ -591,7 +494,6 @@ export function LevelBadge({ level = 1, role = 'MEMBER', showLabel = false, size
     );
   }
   
-  // For MEMBER - Level badge with Crown Hexagon
   const tooltipLabel = `Level ${level} • ${levelConfig.name} (${levelConfig.title})`;
   
   const badgeContent = (
@@ -637,16 +539,11 @@ export function LevelBadge({ level = 1, role = 'MEMBER', showLabel = false, size
   );
 }
 
-// ============================================
-// CROWN BADGE - Premium Crown Emoji Style 👑
-// ============================================
-
 interface CrownBadgeProps {
   level?: number;
   size?: number;
 }
 
-// Crown colors based on level - Golden style with level-based accents
 const CROWN_COLORS: Record<number, {
   base: string;
   dark: string;
@@ -764,7 +661,6 @@ export function CrownBadge({ level = 1, size = 60 }: CrownBadgeProps) {
       }}
     >
       <defs>
-        {/* Main crown gradient - 3D effect */}
         <linearGradient id={`crownBody-${id}`} x1="0%" y1="0%" x2="0%" y2="100%">
           <stop offset="0%" stopColor={colors.light} />
           <stop offset="30%" stopColor={colors.base} />
@@ -772,7 +668,6 @@ export function CrownBadge({ level = 1, size = 60 }: CrownBadgeProps) {
           <stop offset="100%" stopColor={colors.dark} />
         </linearGradient>
         
-        {/* Side shading */}
         <linearGradient id={`crownSide-${id}`} x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" stopColor={colors.dark} />
           <stop offset="20%" stopColor={colors.base} />
@@ -780,14 +675,12 @@ export function CrownBadge({ level = 1, size = 60 }: CrownBadgeProps) {
           <stop offset="100%" stopColor={colors.dark} />
         </linearGradient>
         
-        {/* Gem gradient */}
         <radialGradient id={`gem-${id}`} cx="35%" cy="35%" r="60%">
           <stop offset="0%" stopColor={colors.gemShine} />
           <stop offset="50%" stopColor={colors.gem} />
           <stop offset="100%" stopColor={colors.gem} stopOpacity="0.8" />
         </radialGradient>
         
-        {/* Band gradient */}
         <linearGradient id={`band-${id}`} x1="0%" y1="0%" x2="0%" y2="100%">
           <stop offset="0%" stopColor={colors.accent} />
           <stop offset="50%" stopColor={colors.accentDark} />
@@ -795,8 +688,6 @@ export function CrownBadge({ level = 1, size = 60 }: CrownBadgeProps) {
         </linearGradient>
       </defs>
       
-      {/* === CROWN MAIN BODY === */}
-      {/* Smooth curved crown shape */}
       <path 
         d="M15 65 
            C15 65, 10 30, 20 25
@@ -811,7 +702,6 @@ export function CrownBadge({ level = 1, size = 60 }: CrownBadgeProps) {
         fill={`url(#crownBody-${id})`}
       />
       
-      {/* Crown body outline for depth */}
       <path 
         d="M15 65 
            C15 65, 10 30, 20 25
@@ -827,7 +717,6 @@ export function CrownBadge({ level = 1, size = 60 }: CrownBadgeProps) {
         strokeWidth="2"
       />
       
-      {/* Inner highlight curve */}
       <path 
         d="M22 55 
            Q25 35, 32 40
@@ -841,7 +730,6 @@ export function CrownBadge({ level = 1, size = 60 }: CrownBadgeProps) {
         strokeOpacity="0.4"
       />
       
-      {/* === CROWN BAND (底部) === */}
       <rect 
         x="12" 
         y="60" 
@@ -861,7 +749,6 @@ export function CrownBadge({ level = 1, size = 60 }: CrownBadgeProps) {
         strokeWidth="1.5"
       />
       
-      {/* Band highlight */}
       <rect 
         x="16" 
         y="63" 
@@ -872,7 +759,6 @@ export function CrownBadge({ level = 1, size = 60 }: CrownBadgeProps) {
         fillOpacity="0.5"
       />
       
-      {/* Band shadow line */}
       <rect 
         x="16" 
         y="72" 
@@ -883,43 +769,34 @@ export function CrownBadge({ level = 1, size = 60 }: CrownBadgeProps) {
         fillOpacity="0.3"
       />
       
-      {/* === TOP GEMS/BALLS === */}
-      {/* Left ball */}
       <circle cx="20" cy="25" r="7" fill={`url(#gem-${id})`}>
         <animate attributeName="opacity" values="1;0.85;1" dur="2s" repeatCount="indefinite"/>
       </circle>
       <circle cx="20" cy="25" r="7" fill="none" stroke={colors.dark} strokeWidth="1"/>
       <circle cx="17" cy="22" r="2" fill="white" fillOpacity="0.8"/>
-      
-      {/* Center ball (top) */}
       <circle cx="60" cy="18" r="9" fill={`url(#gem-${id})`}>
         <animate attributeName="opacity" values="1;0.9;1" dur="1.8s" repeatCount="indefinite"/>
       </circle>
       <circle cx="60" cy="18" r="9" fill="none" stroke={colors.dark} strokeWidth="1.5"/>
       <circle cx="56" cy="14" r="2.5" fill="white" fillOpacity="0.9"/>
-      
-      {/* Right ball */}
       <circle cx="100" cy="25" r="7" fill={`url(#gem-${id})`}>
         <animate attributeName="opacity" values="0.9;1;0.9" dur="2.2s" repeatCount="indefinite"/>
       </circle>
       <circle cx="100" cy="25" r="7" fill="none" stroke={colors.dark} strokeWidth="1"/>
       <circle cx="97" cy="22" r="2" fill="white" fillOpacity="0.8"/>
       
-      {/* Mid-left ball */}
       <circle cx="38" cy="38" r="6" fill={`url(#gem-${id})`}>
         <animate attributeName="opacity" values="0.95;1;0.95" dur="1.5s" repeatCount="indefinite"/>
       </circle>
       <circle cx="38" cy="38" r="6" fill="none" stroke={colors.dark} strokeWidth="1"/>
       <circle cx="36" cy="36" r="1.5" fill="white" fillOpacity="0.8"/>
       
-      {/* Mid-right ball */}
       <circle cx="82" cy="38" r="6" fill={`url(#gem-${id})`}>
         <animate attributeName="opacity" values="1;0.92;1" dur="1.7s" repeatCount="indefinite"/>
       </circle>
       <circle cx="82" cy="38" r="6" fill="none" stroke={colors.dark} strokeWidth="1"/>
       <circle cx="80" cy="36" r="1.5" fill="white" fillOpacity="0.8"/>
       
-      {/* === BAND GEMS === */}
       <circle cx="35" cy="69" r="4" fill={`url(#gem-${id})`}/>
       <circle cx="35" cy="69" r="4" fill="none" stroke={colors.dark} strokeWidth="0.8"/>
       <circle cx="33.5" cy="67.5" r="1" fill="white" fillOpacity="0.7"/>
@@ -935,7 +812,6 @@ export function CrownBadge({ level = 1, size = 60 }: CrownBadgeProps) {
   );
 }
 
-// Add CSS animation
 const styleSheet = document.createElement('style');
 styleSheet.textContent = `
   @keyframes pulse-glow {

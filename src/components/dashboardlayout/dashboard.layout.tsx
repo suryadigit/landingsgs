@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { AppShell, Box, Drawer, ActionIcon } from '@mantine/core';
 import { DesktopNavbar, MobileSidebarContent } from '../sidebars/sidebars';
 import { DashboardHeader } from '../headers/headers';
-import { useDarkMode } from '../../hooks/useDarkMode';
+import { useDarkMode } from '../../shared/hooks';
 import { useMediaQuery } from '@mantine/hooks';
 import { IconMenu2, IconX } from '@tabler/icons-react';
 import { useSidebar } from '../../contexts/SidebarContext';
@@ -24,11 +24,10 @@ export function DashboardLayout({
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { COLORS } = useDarkMode();
-  const { isOpen } = useSidebar();
+  const { isOpen, sidebarWidth } = useSidebar();
   const location = useLocation();
 
-  // Calculate navbar width based on sidebar state
-  const navbarWidth = isOpen ? 280 : 60;
+  const navbarWidth = isOpen ? sidebarWidth : 60;
 
   return (
     <AppShell
@@ -49,12 +48,12 @@ export function DashboardLayout({
     >
       <AppShell.Header
         style={{
-          backgroundColor: COLORS.bg.primary,
+          backgroundColor: location.pathname.startsWith('/withdrawal') ? '#143a2b' : COLORS.bg.primary,
           display: 'flex',
           alignItems: 'center',
           paddingLeft: isMobile ? 12 : 0,
           paddingRight: isMobile ? 12 : 0,
-          borderBottom: `1px solid ${COLORS.border}`,
+          borderBottom: `1px solid ${location.pathname.startsWith('/withdrawal') ? 'rgba(255,255,255,0.06)' : COLORS.border}`,
         }}
       >
         {/* Mobile Hamburger Menu */}
@@ -71,7 +70,10 @@ export function DashboardLayout({
         )}
 
         <Box style={{ flex: 1, minWidth: 0 }}>
-          <DashboardHeader {...(headerProps as any)} />
+          <DashboardHeader
+            {...(headerProps as any)}
+            bgOverride={location.pathname.startsWith('/withdrawal') ? '#143a2b' : undefined}
+          />
         </Box>
       </AppShell.Header>
 
@@ -79,16 +81,13 @@ export function DashboardLayout({
       {!isMobile && (
         <AppShell.Navbar
           style={{
-            backgroundColor: COLORS.bg.primary,
-            overflow: 'hidden',
+            backgroundColor: location.pathname.startsWith('/withdrawal') ? '#143a2b' : COLORS.bg.primary,
+            overflow: 'visible',
             width: navbarWidth,
-            transition: 'width 0.35s cubic-bezier(0.25, 0.1, 0.25, 1)',
             willChange: 'width',
           }}
         >
-          {/* Always show navbar content, even while loading user profile */}
-          {/* The sidebar will handle showing/hiding based on token availability */}
-          <DesktopNavbar />
+          <DesktopNavbar {...({ bgOverride: location.pathname.startsWith('/withdrawal') ? '#143a2b' : undefined } as any)} />
         </AppShell.Navbar>
       )}
 

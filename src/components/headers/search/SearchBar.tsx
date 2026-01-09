@@ -1,6 +1,6 @@
 import { Box, Text } from '@mantine/core';
 import { IconSearch } from '@tabler/icons-react';
-import { COLORS } from '../../../types/colors';
+import { COLORS } from '../../../shared/types';
 
 interface SearchBarProps {
   onClick: () => void;
@@ -19,7 +19,6 @@ export function SearchBar({
   textColor,
   isMobile,
 }: SearchBarProps) {
-  // Mobile: hanya icon
   if (isMobile) {
     return (
       <Box
@@ -45,7 +44,6 @@ export function SearchBar({
     );
   }
 
-  // Desktop: full search bar
   return (
     <Box style={{ flex: 1, minWidth: 0, maxWidth: 380 }}>
       <Box
@@ -70,7 +68,7 @@ export function SearchBar({
           e.currentTarget.style.borderColor = borderColor;
         }}
       >
-        <IconSearch size={16} color={COLORS.text.tertiary} />
+        <IconSearch size={16} color={textColor} />
         <Text size="sm" c="dimmed" style={{ whiteSpace: 'nowrap' }}>
           Search...
         </Text>

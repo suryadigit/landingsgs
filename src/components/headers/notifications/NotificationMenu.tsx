@@ -19,20 +19,19 @@ import {
   IconMailOpened,
 } from "@tabler/icons-react";
 import { useNavigate } from "react-router-dom";
-import { COLORS } from "../../../types/colors";
+import { COLORS } from "../../../shared/types";
 import {
   useNotificationMenu,
   getNotificationColor,
   formatNotificationTime,
-} from "../../../hooks/useNotification";
-import type { Notification } from "../../../api/notification";
+} from "../../../shared/hooks";
+import type { Notification } from "../../../features/notification";
 
 interface NotificationMenuProps {
   textColor: string;
   bgColor: string;
 }
 
-// Komponen untuk single notification item
 function NotificationItem({
   notification,
   onMarkAsRead,
@@ -62,7 +61,6 @@ function NotificationItem({
     >
       <Group justify="space-between" wrap="nowrap" gap="xs">
         <Group gap="xs" style={{ flex: 1, minWidth: 0 }}>
-          {/* Mail Icon */}
           {notification.isRead ? (
             <IconMailOpened size={20} color="#999" />
           ) : (
@@ -94,7 +92,6 @@ function NotificationItem({
           </Box>
         </Group>
         
-        {/* Mark as read button */}
         {!notification.isRead && (
           <Tooltip label="Tandai sudah dibaca" withArrow position="left">
             <ActionIcon
@@ -116,7 +113,6 @@ function NotificationItem({
   );
 }
 
-// Komponen empty state
 function EmptyNotifications() {
   return (
     <Box
@@ -155,9 +151,7 @@ export function NotificationMenu({ textColor, bgColor }: NotificationMenuProps) 
     handleMarkAllAsRead,
   } = useNotificationMenu();
 
-  // Handle click pada notifikasi - navigate ke halaman notifikasi
   const handleNotificationClick = (notificationId: string) => {
-    // Mark as read jika belum dibaca
     const notification = notifications.find((n) => n.id === notificationId);
     if (notification && !notification.isRead) {
       handleMarkAsRead(notificationId);
@@ -248,7 +242,6 @@ export function NotificationMenu({ textColor, bgColor }: NotificationMenuProps) 
         </Group>
         <Divider />
 
-        {/* Notification List */}
         <ScrollArea.Autosize mah={350} type="scroll">
           {isLoadingNotifications ? (
             <Box
@@ -276,7 +269,6 @@ export function NotificationMenu({ textColor, bgColor }: NotificationMenuProps) 
           )}
         </ScrollArea.Autosize>
 
-        {/* Footer - Lihat Semua */}
         <Divider />
         <Menu.Item
           onClick={() => {

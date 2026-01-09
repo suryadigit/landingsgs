@@ -6,7 +6,8 @@ import '@mantine/core/styles.css'
 import 'animate.css'
 import './index.css'
 import App from './App.tsx'
-import { AuthProvider } from './store/auth.context'
+import { AuthProvider } from './features/auth'
+import { ErrorProvider } from './contexts/ErrorContext'
 import { theme, getInitialColorScheme } from './config/theme'
 import { queryClient } from './config/queryClient'
 
@@ -15,7 +16,9 @@ createRoot(document.getElementById('root')!).render(
     <QueryClientProvider client={queryClient}>
       <MantineProvider theme={theme} defaultColorScheme={getInitialColorScheme()}>
         <AuthProvider>
-          <App />
+          <ErrorProvider>
+            <App />
+          </ErrorProvider>
         </AuthProvider>
       </MantineProvider>
     </QueryClientProvider>

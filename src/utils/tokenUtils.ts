@@ -1,31 +1,16 @@
-/**
- * Token Utilities - Mengelola token authentication
- * Menyediakan fungsi untuk menyimpan, mengambil, menghapus, dan memvalidasi token
- */
-
 export const TokenUtils = {
-  /**
-   * Mendapatkan token key dari environment variable atau default
-   */
   getTokenKey: (): string => {
     return import.meta.env.VITE_TOKEN_KEY || "auth_token";
   },
 
-  /**
-   * Menyimpan token ke localStorage
-   */
   saveToken: (token: string): void => {
     try {
       const tokenKey = TokenUtils.getTokenKey();
       localStorage.setItem(tokenKey, token);
     } catch {
-      // Silent fail
     }
   },
 
-  /**
-   * Mengambil token dari localStorage
-   */
   getToken: (): string | null => {
     try {
       const tokenKey = TokenUtils.getTokenKey();
@@ -35,29 +20,19 @@ export const TokenUtils = {
     }
   },
 
-  /**
-   * Menghapus token dari localStorage
-   */
   removeToken: (): void => {
     try {
       const tokenKey = TokenUtils.getTokenKey();
       localStorage.removeItem(tokenKey);
     } catch {
-      // Silent fail
     }
   },
 
-  /**
-   * Mengecek apakah token ada di localStorage
-   */
   hasToken: (): boolean => {
     const token = TokenUtils.getToken();
     return !!token;
   },
 
-  /**
-   * Decode JWT token untuk mengambil payload
-   */
   decodeToken: (token: string): any => {
     try {
       const parts = token.split(".");
@@ -74,9 +49,6 @@ export const TokenUtils = {
     }
   },
 
-  /**
-   * Mengecek apakah token sudah expired
-   */
   isTokenExpired: (token: string): boolean => {
     try {
       const decoded = TokenUtils.decodeToken(token);
@@ -94,9 +66,6 @@ export const TokenUtils = {
     }
   },
 
-  /**
-   * Mendapatkan sisa waktu token dalam detik
-   */
   getTokenExpirationTime: (token: string): number => {
     try {
       const decoded = TokenUtils.decodeToken(token);
@@ -113,9 +82,6 @@ export const TokenUtils = {
     }
   },
 
-  /**
-   * Mengecek apakah token masih valid (ada dan belum expired)
-   */
   isTokenValid: (): boolean => {
     const token = TokenUtils.getToken();
     
@@ -126,9 +92,6 @@ export const TokenUtils = {
     return !TokenUtils.isTokenExpired(token);
   },
 
-  /**
-   * Mengecek apakah token akan expired dalam X detik
-   */
   isTokenExpiringIn: (seconds: number = 300): boolean => {
     const token = TokenUtils.getToken();
     

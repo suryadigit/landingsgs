@@ -1,7 +1,5 @@
-import { useEffect } from 'react'
-
-export function useSidebarReset() {
+import { useEffect } from 'react';
+export const useSidebarReset = () => {
   useEffect(() => {
-    localStorage.setItem('sidebar_state', JSON.stringify(true))
-  }, [])
-}
+  }, []);
+};

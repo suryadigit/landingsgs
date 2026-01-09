@@ -2,7 +2,7 @@ import React from 'react'
 import { Group, Text, ActionIcon, Select, Box } from '@mantine/core'
 import { usePagination } from '@mantine/hooks'
 import { IconChevronLeft, IconChevronRight, IconChevronsLeft, IconChevronsRight } from '@tabler/icons-react'
-import { COLORS } from '../../types/colors'
+import { COLORS } from '../../shared/types'
 
 export interface PaginationProps {
   currentPage: number
@@ -29,7 +29,6 @@ export const Pagination: React.FC<PaginationProps> = ({
   dark = false,
   isMobile = false,
 }) => {
-  // Use Mantine's usePagination hook for range calculation
   const pagination = usePagination({
     total: totalPages,
     page: currentPage,

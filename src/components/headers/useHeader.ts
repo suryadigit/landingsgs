@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMediaQuery } from '@mantine/hooks';
-import { useAuth } from '../../store/auth.context';
+import { useAuth } from '../../features/auth';
 import { useUserStorage } from './servstorage/useUserStorage';
 import { useHeaderTheme } from '././theme/useHeaderTheme';
 import { useHeaderSearch } from '././search/useHeaderSearch';
@@ -11,7 +11,6 @@ export function useHeader() {
   const { logout, user } = useAuth();
   const isMobile = useMediaQuery('(max-width: 768px)');
 
-  // Compose smaller hooks
   const { userName, userEmail, userLevel } = useUserStorage();
   const { dark, toggleColorScheme, colors } = useHeaderTheme();
   const {
@@ -32,11 +31,9 @@ export function useHeader() {
     navigate('/signin');
   }, [logout, navigate]);
 
-  // Get user role from auth context
   const userRole = user?.role || 'MEMBER';
 
   return {
-    // State
     isMobile,
     searchOpen,
     searchValue,
@@ -48,10 +45,8 @@ export function useHeader() {
     searchItems,
     filteredResults,
 
-    // Colors (spread from theme hook)
     ...colors,
 
-    // Handlers
     toggleColorScheme,
     handleLogout,
     openSearch,

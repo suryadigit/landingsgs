@@ -22,15 +22,13 @@ import {
 } from '@tabler/icons-react';
 import { Group, ScrollArea, Box, Text, Divider, Button } from '@mantine/core';
 import { LinksGroup } from '../groupsSidebar/linkgroups';
-import { useDarkMode } from '../../hooks/useDarkMode';
+import { useDarkMode } from '../../shared/hooks';
 import { useSidebar } from '../../contexts/SidebarContext';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../store/auth.context';
-import { useState, useEffect, useMemo } from 'react';
-import { getUserMenus, type MenuItem } from '../../api/auth';
+import { useAuth, getUserMenus, type MenuItem } from '../../features/auth';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 const dark = document.documentElement.getAttribute('data-theme') === 'dark';
 
-// Icon mapping dari backend icon string ke Tabler Icons
 const ICON_MAP: Record<string, any> = {
   'dashboard': IconDashboard,
   'dashboard-admin': IconDashboard,
@@ -52,7 +50,6 @@ const ICON_MAP: Record<string, any> = {
   'profile': IconUser,
 };
 
-// Fallback menu jika backend belum ready atau error (untuk MEMBER)
 const FALLBACK_MENUS = [
   { id: 'dashboard', label: 'Dashboard', icon: 'dashboard', link: '/dashboard', order: 1 },
   { id: 'notifications', label: 'Notifikasi', icon: 'bell', link: '/notifications', order: 2 },
@@ -62,7 +59,6 @@ const FALLBACK_MENUS = [
   { id: 'profile', label: 'Profil', icon: 'profile', link: '/profile', order: 99 },
 ];
 
-// Fallback admin menus (untuk ADMIN/SUPERADMIN)
 const FALLBACK_ADMIN_MENUS = [
   { id: 'dashboard-admin', label: 'Dashboard Admin', icon: 'dashboard-admin', link: '/admin/dashboard', order: 1, isAdmin: true },
   { id: 'notifications', label: 'Notifikasi', icon: 'bell', link: '/notifications', order: 2, isAdmin: true },
@@ -74,19 +70,13 @@ const FALLBACK_ADMIN_MENUS = [
 
 export const SidebarContent = () => {
   const { COLORS, isDark } = useDarkMode();
-  const { isOpen, toggleSidebar } = useSidebar();
+  const { isOpen, toggleSidebar, sidebarWidth, setSidebarWidth } = useSidebar();
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
-
-  // Direct check from localStorage
   const tokenKey = import.meta.env.VITE_TOKEN_KEY || 'auth_token';
   const hasToken = !!localStorage.getItem(tokenKey);
-
-  // State untuk menu dari backend
   const [menus, setMenus] = useState<MenuItem[]>([]);
   const [adminMenus, setAdminMenus] = useState<MenuItem[]>([]);
-
-  // Helper: Convert sidebarMenu from login response to MenuItem format
   const convertSidebarMenuToMenuItem = (sidebarMenu: any[]): MenuItem[] => {
     return sidebarMenu.map(item => ({
       id: item.key || item.id,
@@ -98,33 +88,29 @@ export const SidebarContent = () => {
     }));
   };
 
-  // Load menus: Priority 1 = sidebarMenu from login, Priority 2 = API, Priority 3 = fallback
   useEffect(() => {
     const loadMenus = async () => {
       const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPERADMIN';
-      console.log("🔄 Loading menus, isAdmin:", isAdmin, "user role:", user?.role);
 
-      // Priority 1: Check if user has sidebarMenu from login response (stored in user_profile)
       try {
         const userProfileStr = localStorage.getItem('user_profile');
         if (userProfileStr) {
           const userProfile = JSON.parse(userProfileStr);
-          console.log("📦 User profile from localStorage:", userProfile);
           
-          // If sidebarMenu exists in user_profile, use it directly
           if (userProfile.sidebarMenu && userProfile.sidebarMenu.length > 0) {
             const convertedMenus = convertSidebarMenuToMenuItem(userProfile.sidebarMenu);
-            console.log("📋 Converted member menus:", convertedMenus);
             setMenus(convertedMenus);
             
-            // Also set admin menus if available
-            if (userProfile.adminMenu && userProfile.adminMenu.length > 0) {
-              const convertedAdminMenus = convertSidebarMenuToMenuItem(userProfile.adminMenu);
-              console.log("👑 Converted admin menus:", convertedAdminMenus);
-              setAdminMenus(convertedAdminMenus);
-            } else if (isAdmin) {
-              console.log("⚠️ No adminMenu in profile, using fallback for admin");
-              setAdminMenus(FALLBACK_ADMIN_MENUS as MenuItem[]);
+            if (isAdmin) {
+              if (userProfile.adminMenu && userProfile.adminMenu.length > 0) {
+                const convertedAdminMenus = convertSidebarMenuToMenuItem(userProfile.adminMenu);
+                const existingLinks = new Set(convertedAdminMenus.map(m => m.link));
+                const missingMenus = FALLBACK_ADMIN_MENUS.filter(m => !existingLinks.has(m.link));
+                const mergedAdminMenus = [...convertedAdminMenus, ...missingMenus as MenuItem[]];
+                setAdminMenus(mergedAdminMenus);
+              } else {
+                setAdminMenus(FALLBACK_ADMIN_MENUS as MenuItem[]);
+              }
             }
             
             return; // Don't fetch from API if we have menu from login
@@ -134,7 +120,6 @@ export const SidebarContent = () => {
         console.error('Error parsing user_profile:', e);
       }
 
-      // Priority 2: Fetch from API (only if no sidebarMenu in profile)
       if (hasToken) {
         try {
           const response = await getUserMenus();
@@ -146,8 +131,6 @@ export const SidebarContent = () => {
             setAdminMenus(response.adminMenus || []);
           }
         } catch (error) {
-          console.error('Failed to fetch menus:', error);
-          // Priority 3: Fallback menus only on error
           setMenus(FALLBACK_MENUS as MenuItem[]);
           if (isAdmin) {
             setAdminMenus(FALLBACK_ADMIN_MENUS as MenuItem[]);
@@ -157,62 +140,37 @@ export const SidebarContent = () => {
     };
 
     loadMenus();
-  }, [hasToken, user?.role]); // Depend on token and user role
-
-  // Listen untuk event userProfileUpdated - reload menus from localStorage
-  useEffect(() => {
-    const handleProfileUpdate = (event: CustomEvent) => {
-      const userProfile = event.detail?.user;
-      if (userProfile?.sidebarMenu && userProfile.sidebarMenu.length > 0) {
-        const convertedMenus = convertSidebarMenuToMenuItem(userProfile.sidebarMenu);
-        setMenus(convertedMenus);
-        
-        if (userProfile.adminMenu && userProfile.adminMenu.length > 0) {
-          setAdminMenus(convertSidebarMenuToMenuItem(userProfile.adminMenu));
-        }
-      }
-    };
-
-    window.addEventListener('userProfileUpdated', handleProfileUpdate as any);
-    return () => {
-      window.removeEventListener('userProfileUpdated', handleProfileUpdate as any);
-    };
-  }, []);
-
-  // Show sidebar if token exists OR if authenticated
+  }, [hasToken, user?.role]); 
   const shouldShowSidebar = hasToken || isAuthenticated;
   
   if (!shouldShowSidebar) {
     return null;
   }
-
-  // Check if user is admin/superadmin
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPERADMIN';
-
-  // Convert backend menus to component format
-  // For Admin/SuperAdmin: combine both menus (member menus they have access to + admin menus)
-  // For Member: use menus only
   const menuToDisplay = useMemo(() => {
     let allMenus: MenuItem[];
     
     if (isAdmin) {
-      // Admin uses both: member menus (that they have access to) + admin menus
       if (menus.length > 0 || adminMenus.length > 0) {
-        allMenus = [...menus, ...adminMenus];
+        const combined = [...menus, ...adminMenus];
+        const seen = new Set<string>();
+        allMenus = combined.filter(menu => {
+          if (seen.has(menu.link)) {
+            return false;
+          }
+          seen.add(menu.link);
+          return true;
+        });
       } else {
-        // Use fallback if no menus loaded
         allMenus = [...FALLBACK_ADMIN_MENUS as MenuItem[]];
       }
     } else {
-      // Member uses regular menus only
       if (menus.length > 0) {
         allMenus = [...menus];
       } else {
         allMenus = [...FALLBACK_MENUS as MenuItem[]];
       }
     }
-    
-    // Sort by order
     allMenus.sort((a, b) => (a.order || 0) - (b.order || 0));
     
     return allMenus.map(menu => ({
@@ -221,10 +179,98 @@ export const SidebarContent = () => {
       link: menu.link,
     }));
   }, [menus, adminMenus, isAdmin]);
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const isResizing = useRef<boolean>(false);
+  const startX = useRef<number>(0);
+  const startWidth = useRef<number>(280);
+
+  const handleResizeStart = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    isResizing.current = true;
+    startX.current = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    startWidth.current = sidebarWidth;
+    
+    document.body.style.cursor = 'ew-resize';
+    document.body.style.userSelect = 'none';
+  }, [sidebarWidth]);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent | TouchEvent) => {
+      if (!isResizing.current) return;
+      
+      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+      const diff = clientX - startX.current;
+      const newWidth = startWidth.current + diff;
+      
+      setSidebarWidth(newWidth);
+    };
+
+    const handleMouseUp = () => {
+      if (!isResizing.current) return;
+      isResizing.current = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('touchmove', handleMouseMove);
+    document.addEventListener('touchend', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('touchmove', handleMouseMove);
+      document.removeEventListener('touchend', handleMouseUp);
+    };
+  }, [setSidebarWidth]);
 
   return (
-    <>
-      {/* Header */}
+    <div
+      ref={sidebarRef}
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        position: 'relative',
+      }}
+    >
+      <div
+        onMouseDown={handleResizeStart}
+        onTouchStart={handleResizeStart}
+        style={{
+          position: 'absolute',
+          right: -3,
+          top: 0,
+          bottom: 0,
+          width: 6,
+          cursor: 'ew-resize',
+          zIndex: 100,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <div
+          style={{
+            width: 3,
+            height: 40,
+            backgroundColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)',
+            borderRadius: 2,
+            transition: 'background-color 0.15s ease, transform 0.15s ease',
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLDivElement).style.backgroundColor = isDark ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.2)';
+            (e.currentTarget as HTMLDivElement).style.transform = 'scaleY(1.2)';
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLDivElement).style.backgroundColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)';
+            (e.currentTarget as HTMLDivElement).style.transform = 'scaleY(1)';
+          }}
+        />
+      </div>
+      
       <div style={{
         padding: isOpen ? '12px 16px' : '12px 8px',
         flexShrink: 0,
@@ -254,7 +300,6 @@ export const SidebarContent = () => {
           />
         </Box>
 
-        {/* Toggle Button */}
         <Button
           variant="subtle"
           onClick={toggleSidebar}
@@ -283,9 +328,21 @@ export const SidebarContent = () => {
         </Button>
       </div>
 
-      {/* Links Container - Both views rendered */}
+      <style>{`
+        @keyframes drop-circle-right {
+          0% { transform: translateY(-8px) scale(0); opacity: 0; }
+          40% { transform: translateY(0) scale(1.12); opacity: 1; }
+          100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
+        @keyframes drop-ripple-right {
+          0% { transform: scale(0); opacity: 0.28; }
+          60% { transform: scale(1.6); opacity: 0.12; }
+          100% { transform: scale(2.2); opacity: 0; }
+        }
+      `}</style>
+
       <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
-        {/* Expanded view */}
         <ScrollArea 
           style={{ 
             position: 'absolute',
@@ -302,7 +359,6 @@ export const SidebarContent = () => {
           </div>
         </ScrollArea>
         
-        {/* Collapsed view with icons only */}
         <div style={{ 
           position: 'absolute',
           inset: 0,
@@ -316,7 +372,6 @@ export const SidebarContent = () => {
           transition: isOpen ? 'none' : 'opacity 0.2s cubic-bezier(0.25, 0.1, 0.25, 1) 0.15s',
           pointerEvents: isOpen ? 'none' : 'auto',
         }}>
-          {/* Menu Icons */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             {menuToDisplay.map((item) => {
               const Icon = item.icon;
@@ -329,19 +384,20 @@ export const SidebarContent = () => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    width: 40,
-                    height: 40,
-                    borderRadius: 8,
+                    width: 44,
+                    height: 44,
+                    borderRadius: 12,
+                    position: 'relative',
                     cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    backgroundColor: isActive 
-                      ? (isDark ? 'rgba(59, 130, 246, 0.15)' : 'rgba(59, 130, 246, 0.1)')
-                      : 'transparent',
+                    transition: 'all 0.22s ease',
+                    backgroundColor: isActive ? (isDark ? 'rgba(59,130,246,0.12)' : 'rgba(59,130,246,0.12)') : 'transparent',
+                    boxShadow: isActive ? '0 8px 24px rgba(59,130,246,0.06)' : 'none',
                     color: isActive ? '#3b82f6' : (isDark ? '#a1a1a1' : '#64748b'),
+                    padding: 6,
                   }}
                   onMouseEnter={(e) => {
                     if (!isActive) {
-                      (e.currentTarget as HTMLDivElement).style.backgroundColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+                      (e.currentTarget as HTMLDivElement).style.backgroundColor = isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.04)';
                     }
                   }}
                   onMouseLeave={(e) => {
@@ -351,20 +407,33 @@ export const SidebarContent = () => {
                   }}
                   title={item.label}
                 >
-                  <Icon size={20} strokeWidth={1.5} />
+
+                  <div style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 8,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: isActive ? 'white' : (isDark ? '#111217' : '#f1f5f9'),
+                    color: isActive ? '#3b82f6' : (isDark ? '#a1a1a1' : '#64748b'),
+                    boxShadow: isActive ? 'inset 0 0 0 2px rgba(59,130,246,0.06)' : 'none',
+                  }}>
+                    <Icon size={18} strokeWidth={1.5} />
+                  </div>
                 </Box>
               );
             })}
           </div>
           
-          {/* Bottom Icons - WhatsApp & Logout */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', paddingBottom: 8 }}>
             {/* WhatsApp */}
             <a
-              href={`https://wa.me/6281234567890?text=${encodeURIComponent('Halo, saya butuh bantuan terkait akun SGS Affiliate.')}`}
+              href={`https://wa.me/6285183292385?text=${encodeURIComponent('Halo, saya butuh bantuan terkait akun SGS Affiliate.')}`}
               target="_blank"
               rel="noopener noreferrer"
               style={{ textDecoration: 'none' }}
+              onClick={(e) => e.stopPropagation()}
             >
               <Box
                 style={{
@@ -386,7 +455,6 @@ export const SidebarContent = () => {
               </Box>
             </a>
             
-            {/* Logout */}
             <Box
               onClick={() => {
                 localStorage.removeItem(import.meta.env.VITE_TOKEN_KEY || 'auth_token');
@@ -429,7 +497,6 @@ export const SidebarContent = () => {
         </div>
       </div>
 
-      {/* Footer - User Section with smooth transition */}
       <div
         style={{
           padding: '12px 12px 16px 12px',
@@ -444,9 +511,8 @@ export const SidebarContent = () => {
       >
         <Divider mb={12} />
 
-          {/* WhatsApp Help Shortcut */}
           {(() => {
-            const WA_NUMBER = '6281234567890';
+            const WA_NUMBER = '6285183292385';
             const WA_MESSAGE = 'Halo, saya butuh bantuan terkait akun SGS Affiliate.';
             const href = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(WA_MESSAGE)}`;
 
@@ -456,6 +522,7 @@ export const SidebarContent = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ textDecoration: 'none' }}
+                onClick={(e) => e.stopPropagation()}
               >
                 <Group
                   justify="space-between"
@@ -530,7 +597,7 @@ export const SidebarContent = () => {
             );
           })()}
         </div>
-    </>
+    </div>
   );
 };
 
@@ -550,7 +617,6 @@ export function DesktopNavbar() {
   );
 }
 
-// Mobile Sidebar Content - Clean and Simple
 interface MobileSidebarContentProps {
   onClose: () => void;
 }
@@ -563,11 +629,9 @@ export function MobileSidebarContent({ onClose }: MobileSidebarContentProps) {
   const tokenKey = import.meta.env.VITE_TOKEN_KEY || 'auth_token';
   const hasToken = !!localStorage.getItem(tokenKey);
 
-  // State untuk menu dari backend
   const [menus, setMenus] = useState<MenuItem[]>([]);
   const [adminMenus, setAdminMenus] = useState<MenuItem[]>([]);
 
-  // Helper: Convert sidebarMenu from login response to MenuItem format
   const convertSidebarMenuToMenuItem = (sidebarMenu: any[]): MenuItem[] => {
     return sidebarMenu.map(item => ({
       id: item.key || item.id,
@@ -579,15 +643,12 @@ export function MobileSidebarContent({ onClose }: MobileSidebarContentProps) {
     }));
   };
 
-  // Load menus from user_profile or API
   useEffect(() => {
-    // Only run once on mount
     if (menus.length > 0) return;
     
     const loadMenus = async () => {
       const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPERADMIN';
 
-      // Priority 1: Check sidebarMenu from user_profile
       try {
         const userProfileStr = localStorage.getItem('user_profile');
         if (userProfileStr) {
@@ -606,14 +667,12 @@ export function MobileSidebarContent({ onClose }: MobileSidebarContentProps) {
         // Continue to API fetch
       }
 
-      // Priority 2: Fetch from backend
       if (hasToken) {
         try {
           const response = await getUserMenus();
           setMenus(response.menus);
           setAdminMenus(response.adminMenus || []);
         } catch {
-          // Use fallback menus
           setMenus(FALLBACK_MENUS as MenuItem[]);
           if (isAdmin) {
             setAdminMenus(FALLBACK_ADMIN_MENUS as MenuItem[]);
@@ -628,10 +687,17 @@ export function MobileSidebarContent({ onClose }: MobileSidebarContentProps) {
   const shouldShowSidebar = hasToken || isAuthenticated;
   if (!shouldShowSidebar) return null;
 
-  // Convert backend menus to component format
   const menuToDisplay = useMemo(() => {
-    const allMenus = [...menus, ...adminMenus];
-    return allMenus.map(menu => ({
+    const combined = [...menus, ...adminMenus];
+    const seen = new Set<string>();
+    const deduped = combined.filter(menu => {
+      if (seen.has(menu.link)) return false;
+      seen.add(menu.link);
+      return true;
+    });
+    deduped.sort((a, b) => (a.order || 0) - (b.order || 0));
+    
+    return deduped.map(menu => ({
       label: menu.label,
       icon: ICON_MAP[menu.icon] || IconDashboard,
       link: menu.link,
@@ -645,7 +711,6 @@ export function MobileSidebarContent({ onClose }: MobileSidebarContentProps) {
 
   return (
     <>
-      {/* Menu Items */}
       <ScrollArea style={{ flex: 1 }}>
         <Box p="md">
           {menuToDisplay.map((item) => {
@@ -681,7 +746,6 @@ export function MobileSidebarContent({ onClose }: MobileSidebarContentProps) {
         </Box>
       </ScrollArea>
 
-      {/* Footer - WhatsApp Help */}
       <Box
         style={{
           padding: '16px',
@@ -690,7 +754,7 @@ export function MobileSidebarContent({ onClose }: MobileSidebarContentProps) {
         }}
       >
         <a
-          href={`https://wa.me/6281234567890?text=${encodeURIComponent('Halo, saya butuh bantuan terkait akun SGS Affiliate.')}`}
+          href={`https://wa.me/6285183292385?text=${encodeURIComponent('Halo, saya butuh bantuan terkait akun SGS Affiliate.')}`}
           target="_blank"
           rel="noopener noreferrer"
           style={{ textDecoration: 'none' }}

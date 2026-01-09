@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Group, Box, Collapse, ThemeIcon, Text } from '@mantine/core';
 import { IconChevronRight } from '@tabler/icons-react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useDarkMode } from '../../hooks/useDarkMode';
+import { useDarkMode } from '../../shared/hooks';
 
 interface LinksGroupProps {
   icon?: React.ComponentType<any>;
@@ -32,16 +32,31 @@ export function LinksGroup({ icon: Icon, label, initiallyOpened, links, link }: 
 
   return (
     <>
+      <style>{`
+        @keyframes drop-circle {
+          0% { transform: translateY(-8px) scale(0); opacity: 0; }
+          40% { transform: translateY(0) scale(1.12); opacity: 1; }
+          100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
+        @keyframes drop-ripple {
+          0% { transform: scale(0); opacity: 0.28; }
+          60% { transform: scale(1.6); opacity: 0.12; }
+          100% { transform: scale(2.2); opacity: 0; }
+        }
+      `}</style>
       <Group
         justify="space-between"
         className="menu-item"
         style={{
-          padding: '12px 12px',
+          position: 'relative',
+          padding: '10px 12px',
           marginBottom: '8px',
-          borderRadius: '8px',
+          borderRadius: '12px',
           cursor: 'pointer',
-          backgroundColor: isActive || isChildActive ? `rgba(59, 130, 246, 0.1)` : 'transparent',
-          transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+          backgroundColor: isActive || isChildActive ? `rgba(59, 130, 246, 0.12)` : 'transparent',
+          boxShadow: isActive || isChildActive ? '0 6px 20px rgba(59,130,246,0.06)' : 'none',
+          transition: 'all 0.22s cubic-bezier(0.2, 0, 0.2, 1)',
           transform: isActive ? 'translateX(4px)' : 'translateX(0)',
         }}
         onClick={handleClick}
@@ -58,15 +73,21 @@ export function LinksGroup({ icon: Icon, label, initiallyOpened, links, link }: 
           }
         }}
       >
+        {/* Active indicator removed to avoid duplicate edge indicator with sidebar resize handle */}
+
         <Group gap="sm" style={{ flex: 1 }}>
           {Icon && (
             <ThemeIcon
-              variant="light"
-              size="lg"
-              radius="md"
+              variant="filled"
+              size={40}
+              radius={10}
               style={{
-                backgroundColor: isActive || isChildActive ? blueLogoColor : (isDark ? "#2c2e33" : "#e5e7eb"),
-                color: isActive || isChildActive ? 'white' : (isDark ? COLORS.text.secondary : "#6b7280"),
+                backgroundColor: isActive || isChildActive ? 'white' : (isDark ? '#111217' : '#f1f5f9'),
+                color: isActive || isChildActive ? blueLogoColor : (isDark ? COLORS.text.secondary : '#6b7280'),
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: isActive || isChildActive ? 'inset 0 0 0 2px rgba(59,130,246,0.08)' : 'none',
               }}
             >
               <Icon size={18} />

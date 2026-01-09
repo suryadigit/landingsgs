@@ -1,7 +1,8 @@
 import axios from "axios";
 
 // Prefer environment variable; if not present, use staging BE domain (no localhost fallback)
-const BASE_URL = import.meta.env.VITE_API_URL || "https://staginglacak.my.id/api";
+// const BASE_URL = import.meta.env.VITE_API_URL || "https://staginglacak.my.id/api";
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
 
 /**
  * Helper function to decode JWT token

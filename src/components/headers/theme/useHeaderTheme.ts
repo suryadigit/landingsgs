@@ -1,5 +1,5 @@
 import { useMantineColorScheme } from '@mantine/core';
-import { COLORS } from '../../../types/colors';
+import { COLORS } from '../../../shared/types';
 
 export function useHeaderTheme() {
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();

@@ -4,11 +4,9 @@ import { SearchBar } from './search/SearchBar';
 import { SearchModal } from './search/SearchModal';
 import { ThemeToggle } from '././theme/ThemeToggle';
 import { NetworkStatus } from './theme/NetworkStatus';
-// import { NotificationMenu } from './notifications/NotificationMenu';
 import { UserMenu } from './UserMenu';
 import { NotificationMenu } from './notifications/NotificationMenu';
 
-// Mobile Active Status Badge Component
 const MobileStatusBadge = () => (
   <Box
     style={{
@@ -62,11 +60,11 @@ const MobileStatusBadge = () => (
 
 interface HeaderProps {
   onMenuToggle?: (opened: boolean) => void;
+  bgOverride?: string;
 }
 
-export function DashboardHeader(_props: HeaderProps) {
+export function DashboardHeader(props: HeaderProps) {
   const {
-    // State
     isMobile,
     searchOpen,
     searchValue,
@@ -77,8 +75,6 @@ export function DashboardHeader(_props: HeaderProps) {
     userRole,
     searchItems,
     filteredResults,
-
-    // Colors
     bgColor,
     borderColor,
     textColor,
@@ -88,8 +84,6 @@ export function DashboardHeader(_props: HeaderProps) {
     inputBgFocus,
     cardBgColor,
     hoverBgColor,
-
-    // Handlers
     toggleColorScheme,
     handleLogout,
     openSearch,
@@ -100,53 +94,56 @@ export function DashboardHeader(_props: HeaderProps) {
     getIconByTitle,
   } = useHeader();
 
-  // Untuk mobile, render simple tanpa wrapper Box
+  const { bgOverride } = props;
+  const bgColorFinal = bgOverride || bgColor;
+  const textColorFinal = bgOverride ? '#ffffff' : textColor;
+  const borderColorFinal = bgOverride ? 'rgba(255,255,255,0.06)' : borderColor;
+
   if (isMobile) {
     return (
       <>
-        <Group gap={8} align="center" justify="flex-end" style={{ height: '100%', width: '100%' }}>
-          {/* Left side icons */}
-          <Group gap={6} align="center" style={{ flex: 1 }}>
-            <SearchBar
-              onClick={openSearch}
-              searchBgColor={searchBgColor}
-              searchBgHover={searchBgHover}
-              borderColor={borderColor}
-              textColor={textColor}
+        <Box style={{ backgroundColor: bgColorFinal, padding: '8px 0', borderBottomLeftRadius: 36, borderBottomRightRadius: 36 }}>
+          <Group gap={8} align="center" justify="flex-end" style={{ height: '100%', width: '100%' }}>
+            {/* Left side icons */}
+            <Group gap={6} align="center" style={{ flex: 1 }}>
+              <SearchBar
+                onClick={openSearch}
+                searchBgColor={searchBgColor}
+                searchBgHover={searchBgHover}
+                borderColor={borderColorFinal}
+                textColor={textColorFinal}
+                isMobile={isMobile}
+              />
+
+              <ThemeToggle
+                dark={dark}
+                textColor={textColorFinal}
+                onToggle={toggleColorScheme}
+              />
+
+              <NetworkStatus
+                dark={dark}
+                textColor={textColorFinal}
+              />
+
+              <NotificationMenu
+                textColor={textColorFinal}
+                bgColor={bgColorFinal}
+              />
+            </Group>
+
+            <MobileStatusBadge />
+            <UserMenu
+              userName={userName}
+              userEmail={userEmail}
+              userLevel={userLevel}
+              userRole={userRole}
+              onLogout={handleLogout}
               isMobile={isMobile}
-            />
-
-            <ThemeToggle
-              dark={dark}
-              textColor={textColor}
-              onToggle={toggleColorScheme}
-            />
-
-            <NetworkStatus
-              dark={dark}
-              textColor={textColor}
-            />
-
-            <NotificationMenu
-              textColor={textColor}
-              bgColor={bgColor}
+              textColor={textColorFinal}
             />
           </Group>
-
-          {/* Status Badge - visible on mobile */}
-          <MobileStatusBadge />
-
-          {/* User Menu - pojok kanan */}
-          <UserMenu
-            userName={userName}
-            userEmail={userEmail}
-            userLevel={userLevel}
-            userRole={userRole}
-            onLogout={handleLogout}
-            isMobile={isMobile}
-            textColor={textColor}
-          />
-        </Group>
+        </Box>
 
         {/* Search Modal */}
         <SearchModal
@@ -162,9 +159,9 @@ export function DashboardHeader(_props: HeaderProps) {
           isMobile={isMobile}
           dark={dark}
           colors={{
-            bgColor,
-            borderColor,
-            textColor,
+            bgColor: bgColorFinal,
+            borderColor: borderColorFinal,
+            textColor: textColorFinal,
             inputBgColor,
             inputBgFocus,
             cardBgColor,
@@ -180,7 +177,7 @@ export function DashboardHeader(_props: HeaderProps) {
     <>
       <Box
         style={{
-          backgroundColor: bgColor,
+          backgroundColor: bgColorFinal,
           padding: '10px 0',
           width: '100%',
           transition: 'all 0.3s ease',
@@ -194,40 +191,34 @@ export function DashboardHeader(_props: HeaderProps) {
           }}
         >
           <Group justify="space-between" align="center" gap={8} style={{ width: '100%' }}>
-            {/* Left - Search Bar */}
             <SearchBar
               onClick={openSearch}
               searchBgColor={searchBgColor}
               searchBgHover={searchBgHover}
-              borderColor={borderColor}
-              textColor={textColor}
+              borderColor={borderColorFinal}
+              textColor={textColorFinal}
               isMobile={isMobile}
             />
 
-            {/* Right Side - Actions */}
             <Group gap={8} align="center">
-              {/* Theme Toggle */}
               <ThemeToggle
                 dark={dark}
-                textColor={textColor}
+                textColor={textColorFinal}
                 onToggle={toggleColorScheme}
               />
 
-              {/* Network Status */}
               <NetworkStatus
                 dark={dark}
-                textColor={textColor}
+                textColor={textColorFinal}
               />
 
-              {/* Notifications */}
               <NotificationMenu
-                textColor={textColor}
-                bgColor={bgColor}
+                textColor={textColorFinal}
+                bgColor={bgColorFinal}
               />
 
               <Divider orientation="vertical" style={{ height: 20 }} />
 
-              {/* User Menu */}
               <UserMenu
                 userName={userName}
                 userEmail={userEmail}
@@ -235,7 +226,7 @@ export function DashboardHeader(_props: HeaderProps) {
                 userRole={userRole}
                 onLogout={handleLogout}
                 isMobile={isMobile}
-                textColor={textColor}
+                textColor={textColorFinal}
               />
             </Group>
           </Group>
@@ -243,7 +234,7 @@ export function DashboardHeader(_props: HeaderProps) {
       </Box>
 
       {/* Search Modal */}
-      <SearchModal
+        <SearchModal
         opened={searchOpen}
         onClose={closeSearch}
         searchValue={searchValue}
@@ -256,9 +247,9 @@ export function DashboardHeader(_props: HeaderProps) {
         isMobile={isMobile}
         dark={dark}
         colors={{
-          bgColor,
-          borderColor,
-          textColor,
+            bgColor: bgColorFinal,
+            borderColor: borderColorFinal,
+            textColor: textColorFinal,
           inputBgColor,
           inputBgFocus,
           cardBgColor,

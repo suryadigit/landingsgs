@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useRef } from 'react';
-import { useAuth } from '../store/auth.context';
+import { useAuth } from '../features/auth';
 
 interface SessionContextType {
   isSessionActive: boolean;
@@ -17,7 +17,6 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const inactivityTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastActivityRef = useRef<number>(Date.now());
 
-  // Initialize last activity from sessionStorage
   useEffect(() => {
     if (isAuthenticated) {
       const stored = sessionStorage.getItem(SESSION_STORAGE_KEY);
@@ -30,7 +29,6 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     }
   }, [isAuthenticated]);
 
-  // Set up inactivity timer
   useEffect(() => {
     if (!isAuthenticated) return;
 
@@ -47,14 +45,12 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       }, INACTIVITY_TIMEOUT);
     };
 
-    // Attach event listeners for user activity
     const events = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
     
     events.forEach(event => {
       document.addEventListener(event, resetTimer);
     });
 
-    // Initial timer
     resetTimer();
 
     return () => {
