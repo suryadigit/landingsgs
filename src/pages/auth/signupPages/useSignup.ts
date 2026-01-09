@@ -91,15 +91,18 @@ export const useSignup = () => {
         setSignupError(null);
 
         try {
-            const signupResponse = await signupUser({
+            const payload: any = {
                 email: formData.email,
                 password: formData.password,
                 fullName: formData.name,
                 phone: formData.phone,
                 referralCode: formData.referralCode,
-                recaptchaToken: recaptchaToken || undefined,
-                whatsappVerificationToken: whatsappVerificationToken || undefined,
-            });
+            };
+
+            if (recaptchaToken) payload.recaptchaToken = recaptchaToken;
+            if (whatsappVerificationToken) payload.whatsappVerificationToken = whatsappVerificationToken;
+
+            const signupResponse = await signupUser(payload);
 
             console.log("Signup berhasil:", signupResponse);
 

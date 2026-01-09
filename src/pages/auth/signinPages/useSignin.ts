@@ -180,11 +180,16 @@ export const useSignin = () => {
         setSuccess(false);
 
         try {
-            const response = await loginUser({
+            const payload: any = {
                 email: formData.email,
                 password: formData.password,
-                recaptchaToken: recaptchaToken || undefined,
-            });
+            };
+
+            if (recaptchaToken) {
+                payload.recaptchaToken = recaptchaToken;
+            }
+
+            const response = await loginUser(payload);
 
             console.log("📤 Login Response:", response);
 
