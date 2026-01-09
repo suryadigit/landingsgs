@@ -361,7 +361,7 @@ const SignUp: React.FC = () => {
         }
 
         try {
-            let token = "";
+            let token: string | undefined = undefined;
 
             if (!RECAPTCHA_DISABLED) {
                 // Execute reCAPTCHA Enterprise and get token
@@ -376,7 +376,7 @@ const SignUp: React.FC = () => {
                 preventDefault: () => {},
             } as React.FormEvent<HTMLFormElement>;
 
-            // Pass whatsappVerificationToken to backend (token may be empty when disabled)
+            // Pass whatsappVerificationToken to backend (token may be undefined when disabled)
             await handleSubmit(fakeEvent, token, whatsappVerificationToken);
         } catch (error) {
             console.error("❌ reCAPTCHA error:", error);

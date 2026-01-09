@@ -97,8 +97,8 @@ export const useSignup = () => {
                 fullName: formData.name,
                 phone: formData.phone,
                 referralCode: formData.referralCode,
-                recaptchaToken: recaptchaToken ?? undefined,
-                whatsappVerificationToken: whatsappVerificationToken ?? undefined,
+                recaptchaToken: recaptchaToken || undefined,
+                whatsappVerificationToken: whatsappVerificationToken || undefined,
             });
 
             console.log("Signup berhasil:", signupResponse);

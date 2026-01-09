@@ -125,7 +125,7 @@ const SignIn: React.FC = () => {
             }
 
         try {
-            let token = "";
+            let token: string | undefined = undefined;
 
             if (!RECAPTCHA_DISABLED) {
                 // Execute reCAPTCHA Enterprise and get token
