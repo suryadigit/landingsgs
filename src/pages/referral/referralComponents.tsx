@@ -303,7 +303,7 @@ export const NestedSubReferrals: React.FC<NestedSubReferralsProps> = ({
 
   return (
     <Stack gap={4}>
-      {transformedRefs.map((subRef, index) => {
+      {transformedRefs.map((subRef) => {
         const currentLevelColor = getLevelColor(subRef.level);
         const hasChildren = subRef.referrals && subRef.referrals.length > 0;
         const isExpanded = expandedRows.includes(subRef.id);
