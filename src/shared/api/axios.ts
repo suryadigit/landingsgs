@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const baseURL = import.meta.env.VITE_BASE_URL || import.meta.env.VITE_API_URL || "https://stagingglacak.my.id/api";
+const baseURL = import.meta.env.VITE_BASE_URL || import.meta.env.VITE_API_URL || "https://staginglacak.my.id/api";
 const tokenKey = import.meta.env.VITE_TOKEN_KEY || "auth_token";
 
 const axiosClient = axios.create({
