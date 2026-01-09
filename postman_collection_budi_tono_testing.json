@@ -1,0 +1,532 @@
+{
+  "info": {
+    "_postman_id": "sgs-affiliate-testing",
+    "name": "SGS Affiliate Testing - BUDI TONO Flow",
+    "description": "Testing complete affiliate flow: BUDI → TONO with commission bypass",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "🔐 Auth - BUDI",
+      "item": [
+        {
+          "name": "BUDI Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.environment.set(\"budi_token\", jsonData.token);",
+                  "pm.environment.set(\"budi_id\", jsonData.user.id);",
+                  "pm.environment.set(\"budi_email\", jsonData.user.email);",
+                  "",
+                  "console.log('✅ BUDI Token saved:', jsonData.token.substring(0, 20) + '...');",
+                  "console.log('✅ BUDI ID:', jsonData.user.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"budi@test.com\",\n  \"password\": \"budi123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "login"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📋 BUDI - Check Affiliate Profile",
+      "item": [
+        {
+          "name": "GET BUDI Affiliate Profile (BEFORE Payment)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "console.log('BUDI Affiliate Status:', jsonData.affiliateProfile.status);",
+                  "console.log('BUDI Affiliate Code:', jsonData.affiliateProfile.code);",
+                  "console.log('Referred By:', jsonData.referredBy?.fullName || 'None');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{budi_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/affiliate/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "affiliate", "profile"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "💳 BUDI - Payment Bypass",
+      "item": [
+        {
+          "name": "BYPASS - BUDI Bayar 75K",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "console.log('✅ Payment Status:', jsonData.status || 'SUCCESS');",
+                  "console.log('Amount: Rp', jsonData.amount || 75000);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{budi_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{budi_id}}\",\n  \"amount\": 75000,\n  \"status\": \"COMPLETED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/payments/bypass",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "payments", "bypass"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🛍️ BUDI - Class Purchase",
+      "item": [
+        {
+          "name": "BUDI Beli Kelas 500K - TRIGGER ACTIVATION",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.environment.set(\"budi_code\", jsonData.customer.code);",
+                  "",
+                  "console.log('✅ BUDI Code Generated:', jsonData.customer.code);",
+                  "console.log('✅ BUDI Status:', jsonData.customer.status);",
+                  "console.log('✅ Commissions Created:', jsonData.commissions.length);",
+                  "",
+                  "jsonData.commissions.forEach(comm => {",
+                  "  console.log(`  → ${comm.receiver.fullName} (L${comm.level}): Rp ${comm.amount}`);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{budi_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerAffiliateCode\": null,\n  \"productAmount\": 500000,\n  \"productQty\": 1,\n  \"transactionId\": \"budi-class-purchase-{{$timestamp}}\",\n  \"productType\": \"CLASS\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/commissions/bypass",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "commissions", "bypass"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET BUDI Affiliate Profile (AFTER Class Purchase)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "console.log('✅ BUDI Status (should be ACTIVE):', jsonData.affiliateProfile.status);",
+                  "console.log('✅ BUDI Code (should not be null):', jsonData.affiliateProfile.code);",
+                  "console.log('✅ Activated At:', jsonData.affiliateProfile.activatedAt);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{budi_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/affiliate/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "affiliate", "profile"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🔐 Auth - TONO",
+      "item": [
+        {
+          "name": "TONO Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.environment.set(\"tono_token\", jsonData.token);",
+                  "pm.environment.set(\"tono_id\", jsonData.user.id);",
+                  "pm.environment.set(\"tono_email\", jsonData.user.email);",
+                  "",
+                  "console.log('✅ TONO Token saved:', jsonData.token.substring(0, 20) + '...');",
+                  "console.log('✅ TONO ID:', jsonData.user.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"tono@test.com\",\n  \"password\": \"tono123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "login"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📋 TONO - Check Affiliate Profile",
+      "item": [
+        {
+          "name": "GET TONO Affiliate Profile (BEFORE Payment)",
+          "event": [
+            {
+              "listen": "test",
+              "script": [
+                "var jsonData = pm.response.json();",
+                "console.log('TONO Affiliate Status:', jsonData.affiliateProfile.status);",
+                "console.log('TONO Affiliate Code:', jsonData.affiliateProfile.code);",
+                "console.log('Referred By:', jsonData.referredBy?.fullName || 'None');"
+              ]
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tono_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/affiliate/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "affiliate", "profile"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "💳 TONO - Payment Bypass",
+      "item": [
+        {
+          "name": "BYPASS - TONO Bayar 75K",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "console.log('✅ Payment Status:', jsonData.status || 'SUCCESS');",
+                  "console.log('Amount: Rp', jsonData.amount || 75000);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tono_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{tono_id}}\",\n  \"amount\": 75000,\n  \"status\": \"COMPLETED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/payments/bypass",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "payments", "bypass"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🛍️ TONO - Class Purchase",
+      "item": [
+        {
+          "name": "TONO Beli Kelas 500K - TRIGGER ACTIVATION + 2 COMMISSIONS",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.environment.set(\"tono_code\", jsonData.customer.code);",
+                  "",
+                  "console.log('✅ TONO Code Generated:', jsonData.customer.code);",
+                  "console.log('✅ TONO Status:', jsonData.customer.status);",
+                  "console.log('✅ Total Commissions Created:', jsonData.commissions.length);",
+                  "console.log('✅ Total Commission Amount:', 'Rp ' + jsonData.summary.totalCommissionAmount);",
+                  "",
+                  "jsonData.commissions.forEach(comm => {",
+                  "  console.log(`  → ${comm.receiver.fullName} (L${comm.level}): Rp ${comm.amount}`);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tono_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerAffiliateCode\": null,\n  \"productAmount\": 500000,\n  \"productQty\": 1,\n  \"transactionId\": \"tono-class-purchase-{{$timestamp}}\",\n  \"productType\": \"CLASS\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/commissions/bypass",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "commissions", "bypass"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET TONO Affiliate Profile (AFTER Class Purchase)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "console.log('✅ TONO Status (should be ACTIVE):', jsonData.affiliateProfile.status);",
+                  "console.log('✅ TONO Code (should not be null):', jsonData.affiliateProfile.code);",
+                  "console.log('✅ Activated At:', jsonData.affiliateProfile.activatedAt);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tono_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/affiliate/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "affiliate", "profile"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "✅ VERIFICATION",
+      "item": [
+        {
+          "name": "DB Query - SURYADI Total Commissions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/affiliate/commissions?email=suryadi@test.com",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "affiliate", "commissions"],
+              "query": [
+                {
+                  "key": "email",
+                  "value": "suryadi@test.com"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DB Query - BUDI Total Commissions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/affiliate/commissions?email=budi@test.com",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "affiliate", "commissions"],
+              "query": [
+                {
+                  "key": "email",
+                  "value": "budi@test.com"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DB Query - TONO Total Commissions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/affiliate/commissions?email=tono@test.com",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "affiliate", "commissions"],
+              "query": [
+                {
+                  "key": "email",
+                  "value": "tono@test.com"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000",
+      "type": "string"
+    },
+    {
+      "key": "budi_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "budi_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "budi_email",
+      "value": "budi@test.com",
+      "type": "string"
+    },
+    {
+      "key": "budi_code",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tono_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tono_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tono_email",
+      "value": "tono@test.com",
+      "type": "string"
+    },
+    {
+      "key": "tono_code",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
