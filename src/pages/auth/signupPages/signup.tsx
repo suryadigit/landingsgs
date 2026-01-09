@@ -30,6 +30,8 @@ import { validateWhatsapp, sendWhatsappCode, verifyWhatsappCode, verifyEmailOtp 
 
 // Site Key from .env - Enterprise key
 const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || "6LfhjyUsAAAAAPbjPyPC6aDMj5e4MIHEiEVdPpze";
+// Disable reCAPTCHA entirely (set to 'true' in .env to bypass during development/staging)
+const RECAPTCHA_DISABLED = import.meta.env.VITE_DISABLE_RECAPTCHA === 'true';
 
 // Load reCAPTCHA Enterprise script
 const loadRecaptchaEnterprise = (): Promise<void> => {
@@ -108,8 +110,14 @@ const SignUp: React.FC = () => {
 
     const { COLORS, isDark } = useDarkMode();
 
-    // Load reCAPTCHA Enterprise on mount
+    // Load reCAPTCHA Enterprise on mount (skip when disabled)
     useEffect(() => {
+        if (RECAPTCHA_DISABLED) {
+            console.warn("⚠️ reCAPTCHA is disabled via VITE_DISABLE_RECAPTCHA - bypassing token requirement");
+            setRecaptchaReady(true);
+            return;
+        }
+
         loadRecaptchaEnterprise()
             .then(() => {
                 console.log("✅ reCAPTCHA Enterprise loaded (signup)");
@@ -329,9 +337,11 @@ const SignUp: React.FC = () => {
             return;
         }
 
-        if (!recaptchaReady || !window.grecaptcha?.enterprise) {
-            console.log("reCAPTCHA not ready");
-            return;
+        if (!RECAPTCHA_DISABLED) {
+            if (!recaptchaReady || !window.grecaptcha?.enterprise) {
+                console.log("reCAPTCHA not ready");
+                return;
+            }
         }
 
         // ✅ SECURITY: Validate form data matches verified phone
@@ -351,16 +361,22 @@ const SignUp: React.FC = () => {
         }
 
         try {
-            // Execute reCAPTCHA Enterprise and get token
-            const token = await window.grecaptcha.enterprise.execute(RECAPTCHA_SITE_KEY, { action: "SIGNUP" });
-            console.log("✅ reCAPTCHA Enterprise token obtained (signup)");
-            
+            let token = "";
+
+            if (!RECAPTCHA_DISABLED) {
+                // Execute reCAPTCHA Enterprise and get token
+                token = await window.grecaptcha.enterprise.execute(RECAPTCHA_SITE_KEY, { action: "SIGNUP" });
+                console.log("✅ reCAPTCHA Enterprise token obtained (signup)");
+            } else {
+                console.warn("⚠️ reCAPTCHA disabled — skipping token acquisition");
+            }
+
             // Create a new event to pass to handleSubmit
             const fakeEvent = {
                 preventDefault: () => {},
             } as React.FormEvent<HTMLFormElement>;
-            
-            // Pass whatsappVerificationToken to backend
+
+            // Pass whatsappVerificationToken to backend (token may be empty when disabled)
             await handleSubmit(fakeEvent, token, whatsappVerificationToken);
         } catch (error) {
             console.error("❌ reCAPTCHA error:", error);

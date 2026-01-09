@@ -28,6 +28,7 @@ interface OtpResponse {
 }
 
 export const useSignin = () => {
+    const RECAPTCHA_DISABLED = import.meta.env.VITE_DISABLE_RECAPTCHA === 'true';
     const navigate = useNavigate();
     const { setUser, setToken } = useAuth();
 
@@ -169,7 +170,7 @@ export const useSignin = () => {
             return;
         }
 
-        if (!recaptchaToken) {
+        if (!recaptchaToken && !RECAPTCHA_DISABLED) {
             setError("Silakan selesaikan verifikasi reCAPTCHA");
             return;
         }
